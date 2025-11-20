@@ -1,0 +1,36 @@
+// Database types
+export * from './database';
+
+// Navigation types
+export type RootStackParamList = {
+  Onboarding: undefined;
+  Home: undefined;
+  DailyLog: undefined;
+  LogList: undefined;
+  AIProfile: undefined;
+  WeeklyReport: undefined;
+};
+
+// Screen names
+export enum ScreenName {
+  Onboarding = 'Onboarding',
+  Home = 'Home',
+  DailyLog = 'DailyLog',
+  LogList = 'LogList',
+  AIProfile = 'AIProfile',
+  WeeklyReport = 'WeeklyReport',
+}
+
+// API Response types
+export interface ApiResponse<T> {
+  data?: T;
+  error?: string;
+}
+
+// Onboarding Question
+export interface OnboardingQuestion {
+  id: string;
+  text: string;
+  type: 'text' | 'choice' | 'scale';
+  options?: string[];
+}
