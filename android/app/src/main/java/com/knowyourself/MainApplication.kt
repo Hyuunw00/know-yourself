@@ -1,4 +1,4 @@
-package com.tempproject
+package com.knowyourself
 
 import android.app.Application
 import com.facebook.react.PackageList
