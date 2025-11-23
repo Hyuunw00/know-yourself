@@ -1,14 +1,16 @@
 import { create } from 'zustand';
 import { DailyLog } from '@/types';
-import { saveDailyLog, getDailyLogs, updateDailyLog, deleteDailyLog } from '@/services/dailyLog';
+import { saveDailyLog, getDailyLogs, updateDailyLog, deleteDailyLog, getDailyLogCount } from '@/services/dailyLog';
 
 interface DailyLogState {
   logs: DailyLog[];
+  totalCount: number;
   isLoading: boolean;
   error: string | null;
 
   // 액션
   fetchLogs: (userId: string) => Promise<void>;
+  fetchTotalCount: (userId: string) => Promise<number>;
   addLog: (userId: string, text: string) => Promise<boolean>;
   updateLog: (logId: string, text: string) => Promise<boolean>;
   deleteLog: (logId: string) => Promise<boolean>;
@@ -17,6 +19,7 @@ interface DailyLogState {
 
 export const useDailyLogStore = create<DailyLogState>((set) => ({
   logs: [],
+  totalCount: 0,
   isLoading: false,
   error: null,
 
@@ -24,9 +27,19 @@ export const useDailyLogStore = create<DailyLogState>((set) => ({
   fetchLogs: async (userId: string) => {
     set({ isLoading: true, error: null });
 
-    const logs = await getDailyLogs(userId, { limit: 10 });
+    const [logs, count] = await Promise.all([
+      getDailyLogs(userId, { limit: 10 }),
+      getDailyLogCount(userId),
+    ]);
 
-    set({ logs, isLoading: false });
+    set({ logs, totalCount: count, isLoading: false });
+  },
+
+  // 전체 개수만 불러오기
+  fetchTotalCount: async (userId: string) => {
+    const count = await getDailyLogCount(userId);
+    set({ totalCount: count });
+    return count;
   },
 
   // 일기 추가
@@ -38,6 +51,7 @@ export const useDailyLogStore = create<DailyLogState>((set) => ({
     if (newLog) {
       set((state) => ({
         logs: [newLog, ...state.logs],
+        totalCount: state.totalCount + 1,
         isLoading: false,
       }));
       return true;
@@ -68,6 +82,7 @@ export const useDailyLogStore = create<DailyLogState>((set) => ({
     if (success) {
       set((state) => ({
         logs: state.logs.filter((log) => log.id !== logId),
+        totalCount: state.totalCount - 1,
       }));
       return true;
     }

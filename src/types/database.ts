@@ -51,38 +51,24 @@ export interface DailyLog {
   updated_at: string;
 }
 
-// AI 분석 결과
+// AI 종합 분석 결과
 export interface AIAnalysis {
   id: string;
-  daily_log_id: string;
   user_id: string;
-  emotion?: string; // 감정 (예: "행복", "슬픔", "평온")
-  energy_level?: number; // 에너지 레벨 (1-10)
-  keywords?: string[]; // AI가 추출한 키워드
-  summary?: string; // AI 요약
-  created_at: string;
-}
-
-// AI 프로필 스냅샷 (시점별 AI가 생성한 유저 프로필)
-export interface ProfileSnapshot {
-  id: string;
-  user_id: string;
-  summary: string; // 유저에 대한 AI 요약
+  analysis_number: number; // 1차, 2차, 3차...
+  log_count: number; // 분석 시점 기록 수 (10, 20, 30...)
+  summary?: string; // 유저에 대한 종합 요약
+  personality_traits?: string[]; // 성격 특성
   strengths?: string[]; // 강점
   weaknesses?: string[]; // 약점
   keywords?: string[]; // 핵심 키워드
-  personality_traits?: string[]; // 성격 특성
+  raw_response?: Record<string, unknown>; // AI 원본 응답 전체
+  insights?: AIInsight[]; // 추가 인사이트들
   created_at: string;
 }
 
-// 주간 리포트
-export interface WeeklyReport {
-  id: string;
-  user_id: string;
-  week_start_date: string;
-  week_end_date: string;
-  emotion_summary?: string; // 주간 감정 변화 요약
-  patterns?: string[]; // 반복되는 패턴
-  advice?: string; // AI 조언
-  created_at: string;
+// AI 인사이트
+export interface AIInsight {
+  title: string;
+  content: string;
 }

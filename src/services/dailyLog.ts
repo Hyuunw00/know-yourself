@@ -95,3 +95,42 @@ export const deleteDailyLog = async (logId: string): Promise<boolean> => {
 
   return true;
 };
+
+// 전체 일기 개수 조회
+export const getDailyLogCount = async (userId: string): Promise<number> => {
+  const { count, error } = await supabase
+    .from('daily_logs')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('일기 개수 조회 실패:', error);
+    return 0;
+  }
+
+  return count || 0;
+};
+
+// 특정 날짜 이후의 로그 가져오기 (분석용)
+export const getLogsAfterDate = async (
+  userId: string,
+  afterDate?: string
+): Promise<DailyLog[]> => {
+  let query = supabase
+    .from('daily_logs')
+    .select('*')
+    .eq('user_id', userId);
+
+  if (afterDate) {
+    query = query.gt('created_at', afterDate);
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('로그 조회 실패:', error);
+    return [];
+  }
+
+  return data || [];
+};

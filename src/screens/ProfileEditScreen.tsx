@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores/authStore';
+import { useAnalysisStore, isProfileComplete } from '@/stores/analysisStore';
+import { useDailyLogStore } from '@/stores/dailyLogStore';
 import { getProfile, updateProfile } from '@/services/profile';
 import { MBTI_TYPES, GENDERS } from '@/constants/onboarding';
 import {
@@ -28,6 +30,8 @@ interface Props {
 
 export const ProfileEditScreen = ({ onBack }: Props) => {
   const { user } = useAuthStore();
+  const { latestAnalysis, runAnalysis } = useAnalysisStore();
+  const { totalCount } = useDailyLogStore();
   const [profile, setProfile] = useState<Partial<UserProfile>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -77,9 +81,46 @@ export const ProfileEditScreen = ({ onBack }: Props) => {
       return;
     }
 
-    Alert.alert('완료', '프로필이 저장되었습니다.', [
-      { text: '확인', onPress: onBack },
-    ]);
+    // 프로필이 처음으로 완성되었고, 아직 분석이 없으면 첫 분석 실행
+    const updatedProfile = {
+      ...profile,
+      name: profile.name,
+      birthdate: profile.birthdate,
+      gender: profile.gender,
+      mbti: profile.mbti,
+      occupation: profile.occupation,
+      personality_keywords: profile.personality_keywords,
+      strengths: profile.strengths,
+      weaknesses: profile.weaknesses,
+      interests: profile.interests,
+      values: profile.values,
+      goals: profile.goals,
+    } as UserProfile;
+
+    const isNowComplete = isProfileComplete(updatedProfile);
+
+    // 프로필이 완성되었고 아직 분석이 없으면 첫 분석 제안
+    if (isNowComplete && !latestAnalysis) {
+      Alert.alert(
+        '프로필 완성!',
+        'AI가 당신을 분석해드릴게요. 분석을 시작할까요?',
+        [
+          { text: '나중에', onPress: onBack },
+          {
+            text: '분석 시작',
+            onPress: () => {
+              onBack();
+              // 백그라운드로 분석 실행
+              runAnalysis(user.id, updatedProfile, totalCount);
+            },
+          },
+        ]
+      );
+    } else {
+      Alert.alert('완료', '프로필이 저장되었습니다.', [
+        { text: '확인', onPress: onBack },
+      ]);
+    }
   };
 
   // 배열 필드 토글 (복수 선택)

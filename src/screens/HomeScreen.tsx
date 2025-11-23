@@ -13,7 +13,9 @@ import { LogHistoryScreen } from '@/screens/LogHistoryScreen';
 import { ActivityGrass } from '@/components/ActivityGrass';
 import { useDailyLogStore } from '@/stores/dailyLogStore';
 import { useAuthStore } from '@/stores/authStore';
-import { DailyLog } from '@/types/database';
+import { useAnalysisStore, ANALYSIS_INTERVAL } from '@/stores/analysisStore';
+import { getProfile } from '@/services/profile';
+import { DailyLog, UserProfile } from '@/types/database';
 import { formatDateShort } from '@/utils/date';
 
 interface Props {
@@ -24,13 +26,24 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedLog, setSelectedLog] = useState<DailyLog | null>(null);
   const [showHistory, setShowHistory] = useState(false);
-  const { logs, isLoading, fetchLogs, addLog, updateLog, deleteLog } = useDailyLogStore();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const {
+    logs,
+    totalCount,
+    isLoading,
+    fetchLogs,
+    addLog,
+    updateLog,
+    deleteLog,
+  } = useDailyLogStore();
   const { user, logout } = useAuthStore();
+  const { checkAndTriggerAnalysis } = useAnalysisStore();
 
   // 화면 로드 시 데이터 불러오기
   useEffect(() => {
     if (user?.id) {
       fetchLogs(user.id);
+      getProfile(user.id).then(setProfile);
     }
   }, [fetchLogs, user?.id]);
 
@@ -39,6 +52,16 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
     const success = await addLog(user.id, text);
     if (success) {
       setModalVisible(false);
+      if (profile) {
+        const newTotalCount = totalCount + 1;
+        // ANALYSIS_INTERVAL의 배수일 때 백그라운드 분석 트리거
+        if (
+          newTotalCount >= ANALYSIS_INTERVAL &&
+          newTotalCount % ANALYSIS_INTERVAL === 0
+        ) {
+          checkAndTriggerAnalysis(user.id, profile, newTotalCount);
+        }
+      }
     }
   };
 
@@ -82,7 +105,10 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
             <Text style={styles.title}>나의 기록</Text>
             <View style={styles.headerButtons}>
               {onGoProfile && (
-                <TouchableOpacity onPress={onGoProfile} style={styles.headerButton}>
+                <TouchableOpacity
+                  onPress={onGoProfile}
+                  style={styles.headerButton}
+                >
                   <Text style={styles.headerButtonText}>프로필</Text>
                 </TouchableOpacity>
               )}
@@ -124,7 +150,11 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
             <Text style={styles.emptyText}>아직 기록이 없어요</Text>
           ) : (
             logs.map(log => (
-              <TouchableOpacity key={log.id} style={styles.logItem} onPress={() => handleLogPress(log)}>
+              <TouchableOpacity
+                key={log.id}
+                style={styles.logItem}
+                onPress={() => handleLogPress(log)}
+              >
                 <Text style={styles.logDate}>{formatDateShort(log.date)}</Text>
                 <Text style={styles.logPreview}>{getPreview(log.text)}</Text>
                 <Text style={styles.arrow}>›</Text>

@@ -1,0 +1,137 @@
+import { supabase } from './supabase';
+import { AIAnalysis, UserProfile, DailyLog } from '@/types';
+
+export interface AnalysisResult {
+  summary: string;
+  personality_traits: string[];
+  strengths: string[];
+  weaknesses: string[];
+  keywords: string[];
+  insights: { title: string; content: string }[];
+}
+
+// AI 종합 분석 요청
+export const requestAnalysis = async (
+  profile: UserProfile,
+  logs: DailyLog[],
+  previousAnalysis?: AIAnalysis | null,
+  analysisNumber: number = 1
+): Promise<AnalysisResult | null> => {
+  const { data, error } = await supabase.functions.invoke('analyze-log', {
+    body: {
+      profile: {
+        name: profile.name,
+        birthdate: profile.birthdate,
+        gender: profile.gender,
+        mbti: profile.mbti,
+        occupation: profile.occupation,
+        personality_keywords: profile.personality_keywords,
+        strengths: profile.strengths,
+        weaknesses: profile.weaknesses,
+        interests: profile.interests,
+        values: profile.values,
+        goals: profile.goals,
+      },
+      logs: logs.map(log => ({
+        date: log.date,
+        text: log.text,
+      })),
+      previousAnalysis: previousAnalysis
+        ? {
+            summary: previousAnalysis.summary,
+            personality_traits: previousAnalysis.personality_traits,
+            strengths: previousAnalysis.strengths,
+            weaknesses: previousAnalysis.weaknesses,
+            keywords: previousAnalysis.keywords,
+          }
+        : undefined,
+      analysisNumber,
+    },
+  });
+
+  if (error) {
+    console.error('AI 분석 실패:', error);
+    return null;
+  }
+
+  return data as AnalysisResult;
+};
+
+// 분석 결과 저장
+export const saveAnalysis = async (
+  userId: string,
+  logCount: number,
+  analysisNumber: number,
+  result: AnalysisResult
+): Promise<AIAnalysis | null> => {
+  const { data, error } = await supabase
+    .from('ai_analyses')
+    .insert({
+      user_id: userId,
+      analysis_number: analysisNumber,
+      log_count: logCount,
+      summary: result.summary,
+      personality_traits: result.personality_traits,
+      strengths: result.strengths,
+      weaknesses: result.weaknesses,
+      keywords: result.keywords,
+      raw_response: result,
+      insights: result.insights,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('분석 결과 저장 실패:', error);
+    return null;
+  }
+
+  return data;
+};
+
+// 가장 최근 분석 결과 조회
+export const getLatestAnalysis = async (
+  userId: string
+): Promise<AIAnalysis | null> => {
+  const { data, error } = await supabase
+    .from('ai_analyses')
+    .select('*')
+    .eq('user_id', userId)
+    .order('analysis_number', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error) {
+    if (error.code !== 'PGRST116') {
+      console.error('분석 결과 조회 실패:', error);
+    }
+    return null;
+  }
+
+  return data;
+};
+
+// 사용자의 모든 분석 결과 조회
+export const getAllAnalyses = async (userId: string): Promise<AIAnalysis[]> => {
+  const { data, error } = await supabase
+    .from('ai_analyses')
+    .select('*')
+    .eq('user_id', userId)
+    .order('analysis_number', { ascending: false });
+
+  if (error) {
+    console.error('분석 결과 목록 조회 실패:', error);
+    return [];
+  }
+
+  return data || [];
+};
+
+// 분석이 필요한지 체크 (10의 배수)
+export const shouldTriggerAnalysis = (
+  logCount: number,
+  lastAnalysisLogCount: number
+): boolean => {
+  // 10의 배수이고, 마지막 분석 이후 새 기록이 있는 경우
+  return logCount >= 10 && logCount % 10 === 0 && logCount > lastAnalysisLogCount;
+};
