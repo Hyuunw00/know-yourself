@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { DailyLogModal } from '@/components/DailyLogModal';
 import { LogHistoryScreen } from '@/screens/LogHistoryScreen';
+import { ActivityGrass } from '@/components/ActivityGrass';
 import { useDailyLogStore } from '@/stores/dailyLogStore';
 import { useAuthStore } from '@/stores/authStore';
 import { DailyLog } from '@/types/database';
@@ -93,14 +94,10 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
           <Text style={styles.subtitle}>매일 기록하며 나를 알아가요</Text>
         </View>
 
-        {/* 잔디 UI (임시 - 나중에 구현) */}
+        {/* 잔디 UI */}
         <View style={styles.activitySection}>
           <Text style={styles.sectionTitle}>기록 현황</Text>
-          <View style={styles.grassContainer}>
-            {/* TODO: 실제 잔디 UI 컴포넌트로 교체 */}
-            <Text style={styles.placeholder}>📊 깃허브 스타일 잔디 UI</Text>
-            <Text style={styles.placeholder}>(곧 추가 예정)</Text>
-          </View>
+          <ActivityGrass logs={logs} />
         </View>
 
         {/* 오늘 기록하기 버튼 */}
@@ -218,17 +215,6 @@ const styles = StyleSheet.create({
   moreButton: {
     fontSize: 14,
     color: '#4CAF50',
-  },
-  grassContainer: {
-    alignItems: 'center',
-    paddingVertical: 20,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
-  },
-  placeholder: {
-    fontSize: 14,
-    color: '#999',
-    textAlign: 'center',
   },
   mainButton: {
     backgroundColor: '#4CAF50',
