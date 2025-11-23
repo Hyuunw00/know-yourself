@@ -10,8 +10,9 @@ export interface UserProfile {
   id: string;
   user_id: string;
   name: string;
-  age?: number;
+  birthdate?: string; // YYYY-MM-DD
   gender?: 'male' | 'female' | 'other';
+  mbti?: string;
   occupation?: string;
   interests?: string[];
   goals?: string[];
