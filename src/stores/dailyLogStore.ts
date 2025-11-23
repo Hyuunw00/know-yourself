@@ -1,0 +1,52 @@
+import { create } from 'zustand';
+import { DailyLog } from '@/types';
+import { saveDailyLog, getDailyLogs } from '@/services/dailyLog';
+
+interface DailyLogState {
+  logs: DailyLog[];
+  isLoading: boolean;
+  error: string | null;
+
+  // 액션
+  fetchLogs: (userId: string) => Promise<void>;
+  addLog: (userId: string, text: string) => Promise<boolean>;
+  clearLogs: () => void;
+}
+
+export const useDailyLogStore = create<DailyLogState>((set) => ({
+  logs: [],
+  isLoading: false,
+  error: null,
+
+  // 일기 목록 불러오기
+  fetchLogs: async (userId: string) => {
+    set({ isLoading: true, error: null });
+
+    const logs = await getDailyLogs(userId, { limit: 10 });
+
+    set({ logs, isLoading: false });
+  },
+
+  // 일기 추가
+  addLog: async (userId: string, text: string) => {
+    set({ isLoading: true, error: null });
+
+    const newLog = await saveDailyLog(userId, text);
+
+    if (newLog) {
+      set((state) => ({
+        logs: [newLog, ...state.logs.filter((log) => log.date !== newLog.date)],
+        isLoading: false,
+      }));
+      return true;
+    }
+
+    set({ isLoading: false, error: '저장 실패' });
+    return false;
+  },
+
+  // 로그 초기화 (로그아웃 시)
+  clearLogs: () => {
+    set({ logs: [], error: null });
+  },
+}));

@@ -1,27 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
+  ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { DailyLogModal } from '@/components/DailyLogModal';
+import { useDailyLogStore } from '@/stores/dailyLogStore';
+
+// TODO: 인증 구현 후 실제 userId로 교체
+const TEMP_USER_ID = 'temp-user-id';
 
 export const HomeScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
+  const { logs, isLoading, fetchLogs, addLog } = useDailyLogStore();
 
-  // TODO: 실제 데이터 연동
-  const recentLogs = [
-    { date: '11/19', preview: '행복했던 하루' },
-    { date: '11/18', preview: '피곤한 날' },
-    { date: '11/17', preview: '새로운 시작' },
-  ];
+  // 화면 로드 시 데이터 불러오기
+  useEffect(() => {
+    fetchLogs(TEMP_USER_ID);
+  }, [fetchLogs]);
 
-  const handleSaveLog = (text: string) => {
-    // TODO: Supabase에 저장
-    console.log('저장:', text);
+  const handleSaveLog = async (text: string) => {
+    const success = await addLog(TEMP_USER_ID, text);
+    if (success) {
+      setModalVisible(false);
+    }
+  };
+
+  // 날짜 포맷 (MM/DD)
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return `${date.getMonth() + 1}/${date.getDate()}`;
+  };
+
+  // 텍스트 미리보기 (30자 제한)
+  const getPreview = (text: string) => {
+    return text.length > 30 ? text.slice(0, 30) + '...' : text;
   };
 
   return (
@@ -46,20 +63,27 @@ export const HomeScreen = () => {
         {/* 오늘 기록하기 버튼 */}
         <TouchableOpacity
           style={styles.mainButton}
-          onPress={() => setModalVisible(true)}>
+          onPress={() => setModalVisible(true)}
+        >
           <Text style={styles.mainButtonText}>✍️ 오늘 기록하기</Text>
         </TouchableOpacity>
 
         {/* 최근 기록 */}
         <View style={styles.recentSection}>
           <Text style={styles.sectionTitle}>최근 기록</Text>
-          {recentLogs.map((log, index) => (
-            <TouchableOpacity key={index} style={styles.logItem}>
-              <Text style={styles.logDate}>{log.date}</Text>
-              <Text style={styles.logPreview}>{log.preview}</Text>
-              <Text style={styles.arrow}>›</Text>
-            </TouchableOpacity>
-          ))}
+          {isLoading ? (
+            <ActivityIndicator color="#4CAF50" />
+          ) : logs.length === 0 ? (
+            <Text style={styles.emptyText}>아직 기록이 없어요</Text>
+          ) : (
+            logs.map(log => (
+              <TouchableOpacity key={log.id} style={styles.logItem}>
+                <Text style={styles.logDate}>{formatDate(log.date)}</Text>
+                <Text style={styles.logPreview}>{getPreview(log.text)}</Text>
+                <Text style={styles.arrow}>›</Text>
+              </TouchableOpacity>
+            ))
+          )}
         </View>
       </ScrollView>
 
@@ -175,5 +199,11 @@ const styles = StyleSheet.create({
   arrow: {
     fontSize: 20,
     color: '#ccc',
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+    paddingVertical: 20,
   },
 });
