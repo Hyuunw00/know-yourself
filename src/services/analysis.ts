@@ -2,11 +2,10 @@ import { supabase } from './supabase';
 import { AIAnalysis, UserProfile, DailyLog } from '@/types';
 
 export interface AnalysisResult {
-  summary: string;
-  personality_traits: string[];
-  strengths: string[];
-  weaknesses: string[];
+  one_liner: string;
   keywords: string[];
+  strengths_analysis: string;
+  growth_points: string;
   insights: { title: string; content: string }[];
 }
 
@@ -25,12 +24,10 @@ export const requestAnalysis = async (
         gender: profile.gender,
         mbti: profile.mbti,
         occupation: profile.occupation,
-        personality_keywords: profile.personality_keywords,
-        strengths: profile.strengths,
-        weaknesses: profile.weaknesses,
         interests: profile.interests,
         values: profile.values,
         goals: profile.goals,
+        // personality_keywords, strengths, weaknesses는 AI가 복사하지 않도록 제외
       },
       logs: logs.map(log => ({
         date: log.date,
@@ -38,11 +35,10 @@ export const requestAnalysis = async (
       })),
       previousAnalysis: previousAnalysis
         ? {
-            summary: previousAnalysis.summary,
-            personality_traits: previousAnalysis.personality_traits,
-            strengths: previousAnalysis.strengths,
-            weaknesses: previousAnalysis.weaknesses,
+            one_liner: previousAnalysis.one_liner,
             keywords: previousAnalysis.keywords,
+            strengths_analysis: previousAnalysis.strengths_analysis,
+            growth_points: previousAnalysis.growth_points,
           }
         : undefined,
       analysisNumber,
@@ -70,13 +66,12 @@ export const saveAnalysis = async (
       user_id: userId,
       analysis_number: analysisNumber,
       log_count: logCount,
-      summary: result.summary,
-      personality_traits: result.personality_traits,
-      strengths: result.strengths,
-      weaknesses: result.weaknesses,
+      one_liner: result.one_liner,
       keywords: result.keywords,
-      raw_response: result,
+      strengths_analysis: result.strengths_analysis,
+      growth_points: result.growth_points,
       insights: result.insights,
+      raw_response: result,
     })
     .select()
     .single();

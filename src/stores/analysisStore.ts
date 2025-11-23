@@ -67,7 +67,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
       // 마지막 분석 이후의 로그만 가져오기
       const logsToAnalyze = await getLogsAfterDate(
         userId,
-        latestAnalysis?.created_at
+        latestAnalysis?.created_at,
       );
 
       // AI 분석 요청

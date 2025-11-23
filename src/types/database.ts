@@ -57,13 +57,12 @@ export interface AIAnalysis {
   user_id: string;
   analysis_number: number; // 1차, 2차, 3차...
   log_count: number; // 분석 시점 기록 수 (10, 20, 30...)
-  summary?: string; // 유저에 대한 종합 요약
-  personality_traits?: string[]; // 성격 특성
-  strengths?: string[]; // 강점
-  weaknesses?: string[]; // 약점
-  keywords?: string[]; // 핵심 키워드
+  one_liner?: string; // 한 줄 정의
+  keywords?: string[]; // AI가 발견한 핵심 키워드
+  strengths_analysis?: string; // 강점 분석 코멘트
+  growth_points?: string; // 성장 포인트 코멘트
+  insights?: AIInsight[]; // AI 인사이트들
   raw_response?: Record<string, unknown>; // AI 원본 응답 전체
-  insights?: AIInsight[]; // 추가 인사이트들
   created_at: string;
 }
 

@@ -147,62 +147,51 @@ export const ProfileScreen = ({ onBack }: Props) => {
             </View>
           ) : latestAnalysis ? (
             <View style={styles.aiCard}>
-              {/* 요약 */}
-              <Text style={styles.aiSummary}>{latestAnalysis.summary}</Text>
+              {/* 한 줄 정의 */}
+              {latestAnalysis.one_liner && (
+                <View style={styles.oneLinerSection}>
+                  <Text style={styles.oneLiner}>
+                    "{latestAnalysis.one_liner}"
+                  </Text>
+                </View>
+              )}
 
-              {/* 키워드 */}
+              {/* AI가 발견한 키워드 */}
               {latestAnalysis.keywords &&
                 latestAnalysis.keywords.length > 0 && (
                   <View style={styles.aiKeywordsSection}>
-                    <Text style={styles.aiSubsectionTitle}>키워드</Text>
+                    <Text style={styles.aiSubsectionTitle}>
+                      AI가 발견한 키워드
+                    </Text>
                     <View style={styles.aiKeywords}>
                       {latestAnalysis.keywords.map((keyword, index) => (
                         <View key={index} style={styles.aiKeywordTag}>
-                          <Text style={styles.aiKeywordText}>{keyword}</Text>
+                          <Text style={styles.aiKeywordText}>#{keyword}</Text>
                         </View>
                       ))}
                     </View>
                   </View>
                 )}
 
-              {/* 성격 특성 */}
-              {latestAnalysis.personality_traits &&
-                latestAnalysis.personality_traits.length > 0 && (
-                  <View style={styles.aiListSection}>
-                    <Text style={styles.aiSubsectionTitle}>성격 특성</Text>
-                    {latestAnalysis.personality_traits.map((trait, index) => (
-                      <Text key={index} style={styles.aiListItem}>
-                        • {trait}
-                      </Text>
-                    ))}
-                  </View>
-                )}
+              {/* 강점 분석 */}
+              {latestAnalysis.strengths_analysis && (
+                <View style={styles.aiAnalysisSection}>
+                  <Text style={styles.aiSubsectionTitle}>당신의 강점</Text>
+                  <Text style={styles.aiAnalysisText}>
+                    {latestAnalysis.strengths_analysis}
+                  </Text>
+                </View>
+              )}
 
-              {/* 강점 */}
-              {latestAnalysis.strengths &&
-                latestAnalysis.strengths.length > 0 && (
-                  <View style={styles.aiListSection}>
-                    <Text style={styles.aiSubsectionTitle}>강점</Text>
-                    {latestAnalysis.strengths.map((strength, index) => (
-                      <Text key={index} style={styles.aiListItem}>
-                        💪 {strength}
-                      </Text>
-                    ))}
-                  </View>
-                )}
-
-              {/* 약점 */}
-              {latestAnalysis.weaknesses &&
-                latestAnalysis.weaknesses.length > 0 && (
-                  <View style={styles.aiListSection}>
-                    <Text style={styles.aiSubsectionTitle}>개선점</Text>
-                    {latestAnalysis.weaknesses.map((weakness, index) => (
-                      <Text key={index} style={styles.aiListItem}>
-                        📌 {weakness}
-                      </Text>
-                    ))}
-                  </View>
-                )}
+              {/* 성장 포인트 */}
+              {latestAnalysis.growth_points && (
+                <View style={styles.aiAnalysisSection}>
+                  <Text style={styles.aiSubsectionTitle}>성장 포인트</Text>
+                  <Text style={styles.aiAnalysisText}>
+                    {latestAnalysis.growth_points}
+                  </Text>
+                </View>
+              )}
 
               {/* 인사이트 */}
               {latestAnalysis.insights &&
@@ -378,11 +367,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
   },
-  aiSummary: {
-    fontSize: 15,
+  oneLinerSection: {
+    marginBottom: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  oneLiner: {
+    fontSize: 17,
+    fontWeight: '600',
     color: '#1a1a1a',
-    lineHeight: 24,
-    marginBottom: 16,
+    lineHeight: 26,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
   aiKeywordsSection: {
     marginBottom: 16,
@@ -409,14 +406,16 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     fontWeight: '500',
   },
-  aiListSection: {
+  aiAnalysisSection: {
     marginBottom: 16,
+    backgroundColor: '#f8f9fa',
+    padding: 14,
+    borderRadius: 10,
   },
-  aiListItem: {
+  aiAnalysisText: {
     fontSize: 14,
     color: '#1a1a1a',
     lineHeight: 22,
-    marginBottom: 4,
   },
   aiInsightsSection: {
     marginBottom: 16,
