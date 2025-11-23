@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,28 +10,72 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  Alert,
 } from 'react-native';
+import { DailyLog } from '@/types/database';
 
 interface DailyLogModalProps {
   visible: boolean;
   onClose: () => void;
-  onSave: (text: string) => void;
+  onSave?: (text: string) => void;
+  onUpdate?: (id: string, text: string) => void;
+  onDelete?: (id: string) => void;
   date?: string;
+  log?: DailyLog | null; // 조회/수정 모드일 때 전달
 }
+
+const MAX_LENGTH = 300;
 
 export const DailyLogModal: React.FC<DailyLogModalProps> = ({
   visible,
   onClose,
   onSave,
+  onUpdate,
+  onDelete,
   date,
+  log,
 }) => {
   const [text, setText] = useState('');
+  const isEditMode = !!log;
+
+  // log가 변경되면 text 초기화
+  useEffect(() => {
+    if (log) {
+      setText(log.text);
+    } else {
+      setText('');
+    }
+  }, [log]);
 
   const handleSave = () => {
-    if (text.trim()) {
+    if (!text.trim()) return;
+
+    if (isEditMode && onUpdate) {
+      onUpdate(log!.id, text);
+    } else if (onSave) {
       onSave(text);
-      setText('');
-      onClose();
+    }
+    setText('');
+    onClose();
+  };
+
+  const handleDelete = () => {
+    if (log && onDelete) {
+      Alert.alert(
+        '기록 삭제',
+        '이 기록을 삭제하시겠습니까?',
+        [
+          { text: '취소', style: 'cancel' },
+          {
+            text: '삭제',
+            style: 'destructive',
+            onPress: () => {
+              onDelete(log.id);
+              onClose();
+            },
+          },
+        ]
+      );
     }
   };
 
@@ -40,22 +84,31 @@ export const DailyLogModal: React.FC<DailyLogModalProps> = ({
     onClose();
   };
 
-  // 오늘 날짜 포맷
-  const today = date || new Date().toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  // 날짜 포맷
+  const displayDate = isEditMode
+    ? new Date(log!.date).toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : date ||
+      new Date().toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
 
   return (
     <Modal
       visible={visible}
       animationType="slide"
       transparent={true}
-      onRequestClose={handleClose}>
+      onRequestClose={handleClose}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}>
+        style={styles.container}
+      >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.overlay}>
             <View style={styles.modalContent}>
@@ -64,10 +117,17 @@ export const DailyLogModal: React.FC<DailyLogModalProps> = ({
                 <TouchableOpacity onPress={handleClose}>
                   <Text style={styles.cancelButton}>취소</Text>
                 </TouchableOpacity>
-                <Text style={styles.date}>{today}</Text>
-                <TouchableOpacity onPress={handleSave}>
-                  <Text style={styles.saveButton}>저장</Text>
-                </TouchableOpacity>
+                <Text style={styles.date}>{displayDate}</Text>
+                <View style={styles.headerRight}>
+                  {isEditMode && onDelete && (
+                    <TouchableOpacity onPress={handleDelete} style={styles.deleteBtn}>
+                      <Text style={styles.deleteButton}>삭제</Text>
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity onPress={handleSave}>
+                    <Text style={styles.saveButton}>저장</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
 
               {/* 입력창 */}
@@ -79,13 +139,17 @@ export const DailyLogModal: React.FC<DailyLogModalProps> = ({
                   multiline
                   value={text}
                   onChangeText={setText}
-                  autoFocus
+                  maxLength={MAX_LENGTH}
+                  autoFocus={!isEditMode}
                   textAlignVertical="top"
                 />
               </View>
 
-              {/* 힌트 */}
+              {/* 글자수 + 힌트 */}
               <View style={styles.hintContainer}>
+                <Text style={styles.charCount}>
+                  {text.length} / {MAX_LENGTH}
+                </Text>
                 <Text style={styles.hint}>
                   💡 짧게라도 괜찮아요. 매일 기록하는 게 중요해요!
                 </Text>
@@ -156,5 +220,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#666',
     textAlign: 'center',
+  },
+  charCount: {
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'right',
+    marginBottom: 8,
+  },
+  deleteButton: {
+    fontSize: 16,
+    color: '#ff4444',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  deleteBtn: {
+    marginRight: 4,
   },
 });

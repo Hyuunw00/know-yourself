@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { DailyLogModal } from '@/components/DailyLogModal';
 import { useDailyLogStore } from '@/stores/dailyLogStore';
 import { useAuthStore } from '@/stores/authStore';
+import { DailyLog } from '@/types/database';
 
 interface Props {
   onGoProfile?: () => void;
@@ -18,7 +19,8 @@ interface Props {
 
 export const HomeScreen = ({ onGoProfile }: Props) => {
   const [modalVisible, setModalVisible] = useState(false);
-  const { logs, isLoading, fetchLogs, addLog } = useDailyLogStore();
+  const [selectedLog, setSelectedLog] = useState<DailyLog | null>(null);
+  const { logs, isLoading, fetchLogs, addLog, updateLog, deleteLog } = useDailyLogStore();
   const { user, logout } = useAuthStore();
 
   // 화면 로드 시 데이터 불러오기
@@ -34,6 +36,28 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
     if (success) {
       setModalVisible(false);
     }
+  };
+
+  const handleLogPress = (log: DailyLog) => {
+    setSelectedLog(log);
+    setModalVisible(true);
+  };
+
+  const handleUpdateLog = async (logId: string, text: string) => {
+    await updateLog(logId, text);
+    setSelectedLog(null);
+    setModalVisible(false);
+  };
+
+  const handleDeleteLog = async (logId: string) => {
+    await deleteLog(logId);
+    setSelectedLog(null);
+    setModalVisible(false);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedLog(null);
+    setModalVisible(false);
   };
 
   // 날짜 포맷 (MM/DD)
@@ -95,7 +119,7 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
             <Text style={styles.emptyText}>아직 기록이 없어요</Text>
           ) : (
             logs.map(log => (
-              <TouchableOpacity key={log.id} style={styles.logItem}>
+              <TouchableOpacity key={log.id} style={styles.logItem} onPress={() => handleLogPress(log)}>
                 <Text style={styles.logDate}>{formatDate(log.date)}</Text>
                 <Text style={styles.logPreview}>{getPreview(log.text)}</Text>
                 <Text style={styles.arrow}>›</Text>
@@ -105,11 +129,14 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
         </View>
       </ScrollView>
 
-      {/* 일기 작성 모달 */}
+      {/* 일기 작성/수정 모달 */}
       <DailyLogModal
         visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        onSave={handleSaveLog}
+        onClose={handleCloseModal}
+        onSave={selectedLog ? undefined : handleSaveLog}
+        onUpdate={selectedLog ? handleUpdateLog : undefined}
+        onDelete={selectedLog ? handleDeleteLog : undefined}
+        log={selectedLog}
       />
     </SafeAreaView>
   );

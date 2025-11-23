@@ -68,3 +68,35 @@ export const getDailyLogs = async (
 
   return data || [];
 };
+
+// 일기 수정
+export const updateDailyLog = async (logId: string, text: string): Promise<DailyLog | null> => {
+  const { data, error } = await supabase
+    .from('daily_logs')
+    .update({ text })
+    .eq('id', logId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('일기 수정 실패:', error);
+    return null;
+  }
+
+  return data;
+};
+
+// 일기 삭제
+export const deleteDailyLog = async (logId: string): Promise<boolean> => {
+  const { error } = await supabase
+    .from('daily_logs')
+    .delete()
+    .eq('id', logId);
+
+  if (error) {
+    console.error('일기 삭제 실패:', error);
+    return false;
+  }
+
+  return true;
+};
