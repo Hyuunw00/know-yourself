@@ -13,6 +13,7 @@ import {
   Alert,
 } from 'react-native';
 import { DailyLog } from '@/types/database';
+import { formatDateMedium } from '@/utils/date';
 
 interface DailyLogModalProps {
   visible: boolean;
@@ -86,17 +87,8 @@ export const DailyLogModal: React.FC<DailyLogModalProps> = ({
 
   // 날짜 포맷
   const displayDate = isEditMode
-    ? new Date(log!.date).toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
-    : date ||
-      new Date().toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
+    ? formatDateMedium(log!.date)
+    : date || formatDateMedium(new Date().toISOString());
 
   return (
     <Modal

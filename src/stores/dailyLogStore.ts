@@ -37,7 +37,7 @@ export const useDailyLogStore = create<DailyLogState>((set) => ({
 
     if (newLog) {
       set((state) => ({
-        logs: [newLog, ...state.logs.filter((log) => log.date !== newLog.date)],
+        logs: [newLog, ...state.logs],
         isLoading: false,
       }));
       return true;

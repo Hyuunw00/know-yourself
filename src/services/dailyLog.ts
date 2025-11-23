@@ -11,16 +11,11 @@ export const saveDailyLog = async (
 
   const { data, error } = await supabase
     .from('daily_logs')
-    .upsert(
-      {
-        user_id: userId,
-        date: logDate,
-        text,
-      },
-      {
-        onConflict: 'user_id,date', // 같은 날짜면 업데이트
-      }
-    )
+    .insert({
+      user_id: userId,
+      date: logDate,
+      text,
+    })
     .select()
     .single();
 
@@ -53,7 +48,7 @@ export const getDailyLogs = async (
     query = query.lte('date', options.endDate);
   }
 
-  query = query.order('date', { ascending: false });
+  query = query.order('updated_at', { ascending: false });
 
   if (options?.limit) {
     query = query.limit(options.limit);

@@ -9,9 +9,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { DailyLogModal } from '@/components/DailyLogModal';
+import { LogHistoryScreen } from '@/screens/LogHistoryScreen';
 import { useDailyLogStore } from '@/stores/dailyLogStore';
 import { useAuthStore } from '@/stores/authStore';
 import { DailyLog } from '@/types/database';
+import { formatDateShort } from '@/utils/date';
 
 interface Props {
   onGoProfile?: () => void;
@@ -20,6 +22,7 @@ interface Props {
 export const HomeScreen = ({ onGoProfile }: Props) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedLog, setSelectedLog] = useState<DailyLog | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
   const { logs, isLoading, fetchLogs, addLog, updateLog, deleteLog } = useDailyLogStore();
   const { user, logout } = useAuthStore();
 
@@ -60,16 +63,14 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
     setModalVisible(false);
   };
 
-  // 날짜 포맷 (MM/DD)
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return `${date.getMonth() + 1}/${date.getDate()}`;
-  };
-
   // 텍스트 미리보기 (30자 제한)
   const getPreview = (text: string) => {
     return text.length > 30 ? text.slice(0, 30) + '...' : text;
   };
+
+  if (showHistory) {
+    return <LogHistoryScreen onBack={() => setShowHistory(false)} />;
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -112,7 +113,14 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
 
         {/* 최근 기록 */}
         <View style={styles.recentSection}>
-          <Text style={styles.sectionTitle}>최근 기록</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>최근 기록</Text>
+            {logs.length > 0 && (
+              <TouchableOpacity onPress={() => setShowHistory(true)}>
+                <Text style={styles.moreButton}>더보기</Text>
+              </TouchableOpacity>
+            )}
+          </View>
           {isLoading ? (
             <ActivityIndicator color="#4CAF50" />
           ) : logs.length === 0 ? (
@@ -120,7 +128,7 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
           ) : (
             logs.map(log => (
               <TouchableOpacity key={log.id} style={styles.logItem} onPress={() => handleLogPress(log)}>
-                <Text style={styles.logDate}>{formatDate(log.date)}</Text>
+                <Text style={styles.logDate}>{formatDateShort(log.date)}</Text>
                 <Text style={styles.logPreview}>{getPreview(log.text)}</Text>
                 <Text style={styles.arrow}>›</Text>
               </TouchableOpacity>
@@ -196,11 +204,20 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#1a1a1a',
-    marginBottom: 12,
+  },
+  moreButton: {
+    fontSize: 14,
+    color: '#4CAF50',
   },
   grassContainer: {
     alignItems: 'center',
