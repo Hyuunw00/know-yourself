@@ -14,8 +14,19 @@ export interface UserProfile {
   gender?: 'male' | 'female' | 'other';
   mbti?: string;
   occupation?: string;
-  interests?: string[];
-  goals?: string[];
+  // 성격/성향
+  personality_keywords?: string[]; // 성격 키워드 (내향적, 계획적 등)
+  strengths?: string[]; // 장점
+  weaknesses?: string[]; // 단점
+  // 라이프스타일
+  interests?: string[]; // 관심사/취미
+  likes?: string[]; // 좋아하는 것
+  dislikes?: string[]; // 싫어하는 것
+  stress_relief?: string[]; // 스트레스 해소법
+  // 가치관/목표
+  values?: string[]; // 가치관
+  goals?: string[]; // 인생 목표
+  bio?: string; // 자기소개 한 줄
   created_at: string;
   updated_at: string;
 }

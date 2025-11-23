@@ -12,7 +12,11 @@ import { DailyLogModal } from '@/components/DailyLogModal';
 import { useDailyLogStore } from '@/stores/dailyLogStore';
 import { useAuthStore } from '@/stores/authStore';
 
-export const HomeScreen = () => {
+interface Props {
+  onGoProfile?: () => void;
+}
+
+export const HomeScreen = ({ onGoProfile }: Props) => {
   const [modalVisible, setModalVisible] = useState(false);
   const { logs, isLoading, fetchLogs, addLog } = useDailyLogStore();
   const { user, logout } = useAuthStore();
@@ -50,9 +54,16 @@ export const HomeScreen = () => {
         <View style={styles.header}>
           <View style={styles.headerTop}>
             <Text style={styles.title}>나의 기록</Text>
-            <TouchableOpacity onPress={logout}>
-              <Text style={styles.logoutText}>로그아웃</Text>
-            </TouchableOpacity>
+            <View style={styles.headerButtons}>
+              {onGoProfile && (
+                <TouchableOpacity onPress={onGoProfile} style={styles.headerButton}>
+                  <Text style={styles.headerButtonText}>프로필</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity onPress={logout} style={styles.headerButton}>
+                <Text style={styles.logoutText}>로그아웃</Text>
+              </TouchableOpacity>
+            </View>
           </View>
           <Text style={styles.subtitle}>매일 기록하며 나를 알아가요</Text>
         </View>
@@ -126,6 +137,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1a1a1a',
     marginBottom: 4,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  headerButton: {
+    paddingVertical: 4,
+  },
+  headerButtonText: {
+    fontSize: 14,
+    color: '#4CAF50',
   },
   logoutText: {
     fontSize: 14,

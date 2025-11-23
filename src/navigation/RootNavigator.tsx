@@ -6,6 +6,7 @@ import { RootStackParamList } from '@/types';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { AuthScreen } from '@/screens/AuthScreen';
 import { OnboardingScreen } from '@/screens/OnboardingScreen';
+import { ProfileScreen } from '@/screens/ProfileScreen';
 import { useAuthStore } from '@/stores/authStore';
 import { supabase } from '@/services/supabase';
 
@@ -14,6 +15,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export const RootNavigator = () => {
   const { user, isInitialized, initialize } = useAuthStore();
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
+  const [showProfile, setShowProfile] = useState(false);
 
   // 앱 시작 시 인증 상태 확인
   useEffect(() => {
@@ -58,11 +60,26 @@ export const RootNavigator = () => {
         ) : !hasProfile ? (
           // 로그인 + 이메일 인증 완료 + 프로필 없음 → 온보딩
           <Stack.Screen name="Onboarding">
-            {() => <OnboardingScreen onComplete={() => setHasProfile(true)} />}
+            {() => (
+              <OnboardingScreen
+                onComplete={() => setHasProfile(true)}
+                onGoProfile={() => {
+                  setHasProfile(true);
+                  setShowProfile(true);
+                }}
+              />
+            )}
+          </Stack.Screen>
+        ) : showProfile ? (
+          // 프로필 화면
+          <Stack.Screen name="Profile">
+            {() => <ProfileScreen onBack={() => setShowProfile(false)} />}
           </Stack.Screen>
         ) : (
           // 로그인 + 이메일 인증 + 프로필 있음 → 홈
-          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Home">
+            {() => <HomeScreen onGoProfile={() => setShowProfile(true)} />}
+          </Stack.Screen>
         )}
       </Stack.Navigator>
     </NavigationContainer>

@@ -6,6 +6,8 @@ export type RootStackParamList = {
   Auth: undefined;
   Onboarding: undefined;
   Home: undefined;
+  Profile: undefined;
+  ProfileEdit: undefined;
   DailyLog: undefined;
   LogList: undefined;
   AIProfile: undefined;
