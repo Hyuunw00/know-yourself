@@ -10,21 +10,23 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { DailyLogModal } from '@/components/DailyLogModal';
 import { useDailyLogStore } from '@/stores/dailyLogStore';
-
-// TODO: 인증 구현 후 실제 userId로 교체
-const TEMP_USER_ID = 'temp-user-id';
+import { useAuthStore } from '@/stores/authStore';
 
 export const HomeScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const { logs, isLoading, fetchLogs, addLog } = useDailyLogStore();
+  const { user, logout } = useAuthStore();
 
   // 화면 로드 시 데이터 불러오기
   useEffect(() => {
-    fetchLogs(TEMP_USER_ID);
-  }, [fetchLogs]);
+    if (user?.id) {
+      fetchLogs(user.id);
+    }
+  }, [fetchLogs, user?.id]);
 
   const handleSaveLog = async (text: string) => {
-    const success = await addLog(TEMP_USER_ID, text);
+    if (!user?.id) return;
+    const success = await addLog(user.id, text);
     if (success) {
       setModalVisible(false);
     }
@@ -46,7 +48,12 @@ export const HomeScreen = () => {
       <ScrollView style={styles.scrollView}>
         {/* 헤더 */}
         <View style={styles.header}>
-          <Text style={styles.title}>나의 기록</Text>
+          <View style={styles.headerTop}>
+            <Text style={styles.title}>나의 기록</Text>
+            <TouchableOpacity onPress={logout}>
+              <Text style={styles.logoutText}>로그아웃</Text>
+            </TouchableOpacity>
+          </View>
           <Text style={styles.subtitle}>매일 기록하며 나를 알아가요</Text>
         </View>
 
@@ -109,11 +116,20 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 10,
   },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#1a1a1a',
     marginBottom: 4,
+  },
+  logoutText: {
+    fontSize: 14,
+    color: '#999',
   },
   subtitle: {
     fontSize: 14,

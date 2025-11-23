@@ -3,6 +3,7 @@ export * from './database';
 
 // Navigation types
 export type RootStackParamList = {
+  Auth: undefined;
   Onboarding: undefined;
   Home: undefined;
   DailyLog: undefined;
