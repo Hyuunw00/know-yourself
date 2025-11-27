@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { DailyLogModal } from '@/components/DailyLogModal';
@@ -15,8 +16,14 @@ import { useDailyLogStore } from '@/stores/dailyLogStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useAnalysisStore, ANALYSIS_INTERVAL } from '@/stores/analysisStore';
 import { getProfile } from '@/services/profile';
-import { DailyLog, UserProfile } from '@/types/database';
+import { DailyLog, UserProfile, AIQuestion } from '@/types/database';
 import { formatDateShort } from '@/utils/date';
+import {
+  getTodayQuestion,
+  generateQuestion,
+  deleteOldUnansweredQuestions,
+} from '@/services/aiQuestion';
+import { AIQuestionModal } from '@/components/AIQuestionModal';
 
 interface Props {
   onGoProfile?: () => void;
@@ -27,6 +34,8 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
   const [selectedLog, setSelectedLog] = useState<DailyLog | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [aiQuestion, setAiQuestion] = useState<AIQuestion | null>(null);
+  const [showQuestionModal, setShowQuestionModal] = useState(false);
   const {
     logs,
     totalCount,
@@ -47,6 +56,48 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
     }
   }, [fetchLogs, user?.id]);
 
+  // AI 질문 체크 로직
+  useEffect(() => {
+    const checkAIQuestion = async () => {
+      if (!user?.id || !profile || logs.length === 0) return;
+
+      // 오래된 미답변 질문 삭제
+      await deleteOldUnansweredQuestions(user.id);
+
+      // 마지막 기록 날짜 확인
+      const lastLog = logs[0]; // logs는 updated_at 기준 내림차순 정렬됨
+      const lastLogDate = new Date(lastLog.date);
+      const today = new Date();
+      const daysDiff = Math.floor(
+        (today.getTime() - lastLogDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      // 2일 이상 기록 안 했으면 질문 체크
+      if (daysDiff >= 2) {
+        // 오늘의 질문이 있는지 확인
+        let question = await getTodayQuestion(user.id);
+
+        // 없으면 새로 생성
+        if (!question) {
+          const { getDailyLogs } = await import('@/services/dailyLog');
+          const recentLogs = await getDailyLogs(user.id, { limit: 10 });
+          question = await generateQuestion(user.id, profile, recentLogs);
+        }
+
+        // 질문이 있으면 모달 표시
+        if (question && !question.answer_text) {
+          setAiQuestion(question);
+          setShowQuestionModal(true);
+        }
+      }
+    };
+
+    // profile과 logs가 모두 로드된 후에 체크
+    if (user?.id && profile && !isLoading) {
+      checkAIQuestion();
+    }
+  }, [user?.id, profile, logs, isLoading]);
+
   const handleSaveLog = async (text: string) => {
     if (!user?.id) return;
 
@@ -55,7 +106,6 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
     const todayCount = await getTodayLogCount(user.id);
 
     if (todayCount >= 3) {
-      const { Alert } = await import('react-native');
       Alert.alert(
         '기록 제한',
         '하루에 최대 3개까지 기록할 수 있어요.\n내일 다시 작성해주세요!',
@@ -100,6 +150,23 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
   const handleCloseModal = () => {
     setSelectedLog(null);
     setModalVisible(false);
+  };
+
+  const handleAnswerQuestion = async (answer: string) => {
+    if (!aiQuestion) return;
+
+    const { answerQuestion } = await import('@/services/aiQuestion');
+    const success = await answerQuestion(aiQuestion.id, answer);
+
+    if (success) {
+      setShowQuestionModal(false);
+      setAiQuestion(null);
+    }
+  };
+
+  const handleSkipQuestion = () => {
+    setShowQuestionModal(false);
+    setAiQuestion(null);
   };
 
   // 텍스트 미리보기 (30자 제한)
@@ -188,6 +255,16 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
         onDelete={selectedLog ? handleDeleteLog : undefined}
         log={selectedLog}
       />
+
+      {/* AI 질문 모달 */}
+      {aiQuestion && (
+        <AIQuestionModal
+          visible={showQuestionModal}
+          questionText={aiQuestion.question_text}
+          onAnswer={handleAnswerQuestion}
+          onSkip={handleSkipQuestion}
+        />
+      )}
     </SafeAreaView>
   );
 };

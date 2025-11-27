@@ -18,8 +18,6 @@ import {
   PROFILE_TABS,
   PERSONALITY_KEYWORDS,
   INTERESTS,
-  VALUES,
-  STRESS_RELIEF,
   ProfileTabKey,
 } from '@/constants/profile';
 import { UserProfile } from '@/types';
@@ -318,42 +316,30 @@ export const ProfileEditScreen = ({ onBack }: Props) => {
         <Text style={styles.label}>나의 장점</Text>
         <TextInput
           style={styles.textArea}
-          value={(profile.strengths || []).join(', ')}
+          value={profile.strengths || ''}
           onChangeText={text =>
-            setProfile({
-              ...profile,
-              strengths: text
-                .split(',')
-                .map(s => s.trim())
-                .filter(Boolean),
-            })
+            setProfile({ ...profile, strengths: text })
           }
-          placeholder="예: 책임감, 성실함, 유머감각"
+          placeholder="예: 책임감이 강해서 맡은 일은 끝까지 해내는 편이에요. 친구들이 저를 믿고 의지하는 이유인 것 같아요."
           placeholderTextColor="#999"
           multiline
         />
-        <Text style={styles.hint}>쉼표(,)로 구분해서 입력하세요</Text>
+        <Text style={styles.hint}>자유롭게 서술해주세요</Text>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.label}>개선하고 싶은 점</Text>
         <TextInput
           style={styles.textArea}
-          value={(profile.weaknesses || []).join(', ')}
+          value={profile.weaknesses || ''}
           onChangeText={text =>
-            setProfile({
-              ...profile,
-              weaknesses: text
-                .split(',')
-                .map(s => s.trim())
-                .filter(Boolean),
-            })
+            setProfile({ ...profile, weaknesses: text })
           }
-          placeholder="예: 우유부단함, 급한 성격"
+          placeholder="예: 결정을 내릴 때 우유부단해서 기회를 놓칠 때가 많아요. 빨리 판단하고 실행하는 능력을 키우고 싶어요."
           placeholderTextColor="#999"
           multiline
         />
-        <Text style={styles.hint}>쉼표(,)로 구분해서 입력하세요</Text>
+        <Text style={styles.hint}>자유롭게 서술해주세요</Text>
       </View>
     </>
   );
@@ -370,45 +356,45 @@ export const ProfileEditScreen = ({ onBack }: Props) => {
         <Text style={styles.label}>좋아하는 것</Text>
         <TextInput
           style={styles.textArea}
-          value={(profile.likes || []).join(', ')}
+          value={profile.likes || ''}
           onChangeText={text =>
-            setProfile({
-              ...profile,
-              likes: text
-                .split(',')
-                .map(s => s.trim())
-                .filter(Boolean),
-            })
+            setProfile({ ...profile, likes: text })
           }
-          placeholder="예: 커피, 비오는 날, 새벽 시간"
+          placeholder="예: 커피 마시면서 책 읽는 시간, 비 오는 날 창밖 바라보기, 새벽의 고요한 분위기"
           placeholderTextColor="#999"
           multiline
         />
+        <Text style={styles.hint}>자유롭게 서술해주세요</Text>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.label}>싫어하는 것</Text>
         <TextInput
           style={styles.textArea}
-          value={(profile.dislikes || []).join(', ')}
+          value={profile.dislikes || ''}
           onChangeText={text =>
-            setProfile({
-              ...profile,
-              dislikes: text
-                .split(',')
-                .map(s => s.trim())
-                .filter(Boolean),
-            })
+            setProfile({ ...profile, dislikes: text })
           }
-          placeholder="예: 거짓말, 더운 날씨, 인파"
+          placeholder="예: 거짓말하는 사람, 무더운 여름 날씨, 복잡한 인파 속에 있을 때"
           placeholderTextColor="#999"
           multiline
         />
+        <Text style={styles.hint}>자유롭게 서술해주세요</Text>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.label}>스트레스 해소법</Text>
-        {renderChips(STRESS_RELIEF, 'stress_relief')}
+        <TextInput
+          style={styles.textArea}
+          value={profile.stress_relief || ''}
+          onChangeText={text =>
+            setProfile({ ...profile, stress_relief: text })
+          }
+          placeholder="예: 운동하기, 음악 듣기, 친구들과 수다 떨기 등으로 스트레스를 풀어요."
+          placeholderTextColor="#999"
+          multiline
+        />
+        <Text style={styles.hint}>자유롭게 서술해주세요</Text>
       </View>
     </>
   );
@@ -418,27 +404,32 @@ export const ProfileEditScreen = ({ onBack }: Props) => {
     <>
       <View style={styles.section}>
         <Text style={styles.label}>중요하게 생각하는 가치</Text>
-        {renderChips(VALUES, 'values')}
+        <TextInput
+          style={styles.textArea}
+          value={profile.values || ''}
+          onChangeText={text =>
+            setProfile({ ...profile, values: text })
+          }
+          placeholder="예: 가족과의 시간, 자기계발, 일과 삶의 균형을 가장 중요하게 생각해요."
+          placeholderTextColor="#999"
+          multiline
+        />
+        <Text style={styles.hint}>자유롭게 서술해주세요</Text>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.label}>인생 목표</Text>
         <TextInput
           style={styles.textArea}
-          value={(profile.goals || []).join(', ')}
+          value={profile.goals || ''}
           onChangeText={text =>
-            setProfile({
-              ...profile,
-              goals: text
-                .split(',')
-                .map(s => s.trim())
-                .filter(Boolean),
-            })
+            setProfile({ ...profile, goals: text })
           }
-          placeholder="예: 경제적 자유, 세계 여행, 건강한 삶"
+          placeholder="예: 30대에 경제적 자유를 이루고, 하고 싶은 일을 선택해서 할 수 있는 삶을 살고 싶어요."
           placeholderTextColor="#999"
           multiline
         />
+        <Text style={styles.hint}>자유롭게 서술해주세요</Text>
       </View>
 
       <View style={styles.section}>
