@@ -49,6 +49,21 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
 
   const handleSaveLog = async (text: string) => {
     if (!user?.id) return;
+
+    // 오늘 작성한 기록 개수 확인 (제한: 3개)
+    const { getTodayLogCount } = await import('@/services/dailyLog');
+    const todayCount = await getTodayLogCount(user.id);
+
+    if (todayCount >= 3) {
+      const { Alert } = await import('react-native');
+      Alert.alert(
+        '기록 제한',
+        '하루에 최대 3개까지 기록할 수 있어요.\n내일 다시 작성해주세요!',
+        [{ text: '확인' }]
+      );
+      return;
+    }
+
     const success = await addLog(user.id, text);
     if (success) {
       setModalVisible(false);

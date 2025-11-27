@@ -156,13 +156,27 @@ export const ProfileScreen = ({ onBack }: Props) => {
                 </View>
               )}
 
+              {/* 핵심 지표 */}
+              <View style={styles.statsSection}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statNumber}>
+                    {latestAnalysis.analysis_number}
+                  </Text>
+                  <Text style={styles.statLabel}>차 분석</Text>
+                </View>
+                <View style={styles.statDivider} />
+                <View style={styles.statItem}>
+                  <Text style={styles.statNumber}>
+                    {latestAnalysis.log_count}
+                  </Text>
+                  <Text style={styles.statLabel}>개 기록</Text>
+                </View>
+              </View>
+
               {/* AI가 발견한 키워드 */}
               {latestAnalysis.keywords &&
                 latestAnalysis.keywords.length > 0 && (
                   <View style={styles.aiKeywordsSection}>
-                    <Text style={styles.aiSubsectionTitle}>
-                      AI가 발견한 키워드
-                    </Text>
                     <View style={styles.aiKeywords}>
                       {latestAnalysis.keywords.map((keyword, index) => (
                         <View key={index} style={styles.aiKeywordTag}>
@@ -173,31 +187,40 @@ export const ProfileScreen = ({ onBack }: Props) => {
                   </View>
                 )}
 
-              {/* 강점 분석 */}
-              {latestAnalysis.strengths_analysis && (
-                <View style={styles.aiAnalysisSection}>
-                  <Text style={styles.aiSubsectionTitle}>당신의 강점</Text>
-                  <Text style={styles.aiAnalysisText}>
-                    {latestAnalysis.strengths_analysis}
-                  </Text>
-                </View>
-              )}
+              {/* 강점 & 성장 포인트 (좌우 분할) */}
+              <View style={styles.dualSection}>
+                {latestAnalysis.strengths_analysis && (
+                  <View style={styles.dualSectionLeft}>
+                    <View style={styles.dualSectionHeader}>
+                      <Text style={styles.dualSectionIcon}>💪</Text>
+                      <Text style={styles.dualSectionTitle}>강점</Text>
+                    </View>
+                    <Text style={styles.dualSectionText}>
+                      {latestAnalysis.strengths_analysis}
+                    </Text>
+                  </View>
+                )}
 
-              {/* 성장 포인트 */}
-              {latestAnalysis.growth_points && (
-                <View style={styles.aiAnalysisSection}>
-                  <Text style={styles.aiSubsectionTitle}>성장 포인트</Text>
-                  <Text style={styles.aiAnalysisText}>
-                    {latestAnalysis.growth_points}
-                  </Text>
-                </View>
-              )}
+                {latestAnalysis.growth_points && (
+                  <View style={styles.dualSectionRight}>
+                    <View style={styles.dualSectionHeader}>
+                      <Text style={styles.dualSectionIcon}>🌱</Text>
+                      <Text style={styles.dualSectionTitle}>성장점</Text>
+                    </View>
+                    <Text style={styles.dualSectionText}>
+                      {latestAnalysis.growth_points}
+                    </Text>
+                  </View>
+                )}
+              </View>
 
               {/* 인사이트 */}
               {latestAnalysis.insights &&
                 latestAnalysis.insights.length > 0 && (
                   <View style={styles.aiInsightsSection}>
-                    <Text style={styles.aiSubsectionTitle}>인사이트</Text>
+                    <Text style={styles.insightsSectionTitle}>
+                      🔮 최신 인사이트
+                    </Text>
                     {latestAnalysis.insights.map((insight, index) => (
                       <View key={index} style={styles.aiInsightCard}>
                         <Text style={styles.aiInsightTitle}>
@@ -210,12 +233,6 @@ export const ProfileScreen = ({ onBack }: Props) => {
                     ))}
                   </View>
                 )}
-
-              {/* 분석 정보 */}
-              <Text style={styles.aiMeta}>
-                {latestAnalysis.analysis_number}차 분석 ·{' '}
-                {latestAnalysis.log_count}개 기록 기반
-              </Text>
             </View>
           ) : (
             <View style={styles.aiCard}>
@@ -226,43 +243,6 @@ export const ProfileScreen = ({ onBack }: Props) => {
             </View>
           )}
         </View>
-
-        {/* 내 정보 섹션 */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>내 정보</Text>
-          <View style={styles.infoCard}>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>이름</Text>
-              <Text style={styles.infoValue}>{profile?.name || '-'}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>생년월일</Text>
-              <Text style={styles.infoValue}>{profile?.birthdate || '-'}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>성별</Text>
-              <Text style={styles.infoValue}>
-                {getGenderLabel(profile?.gender)}
-              </Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>MBTI</Text>
-              <Text style={styles.infoValue}>{profile?.mbti || '-'}</Text>
-            </View>
-            <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
-              <Text style={styles.infoLabel}>직업</Text>
-              <Text style={styles.infoValue}>{profile?.occupation || '-'}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* 수정 버튼 */}
-        <TouchableOpacity
-          style={styles.editFullButton}
-          onPress={() => setIsEditing(true)}
-        >
-          <Text style={styles.editFullButtonText}>프로필 수정하기</Text>
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -384,6 +364,34 @@ const styles = StyleSheet.create({
   aiKeywordsSection: {
     marginBottom: 16,
   },
+  statsSection: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingVertical: 16,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+  },
+  statItem: {
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  statNumber: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#666',
+  },
+  statDivider: {
+    width: 1,
+    height: 32,
+    backgroundColor: '#ddd',
+  },
   aiSubsectionTitle: {
     fontSize: 14,
     fontWeight: '600',
@@ -394,31 +402,63 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    justifyContent: 'center',
   },
   aiKeywordTag: {
     backgroundColor: '#e8f5e9',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
   aiKeywordText: {
     fontSize: 13,
     color: '#4CAF50',
-    fontWeight: '500',
+    fontWeight: '600',
   },
-  aiAnalysisSection: {
+  dualSection: {
+    flexDirection: 'row',
+    gap: 12,
     marginBottom: 16,
-    backgroundColor: '#f8f9fa',
-    padding: 14,
-    borderRadius: 10,
   },
-  aiAnalysisText: {
+  dualSectionLeft: {
+    flex: 1,
+    backgroundColor: '#E8F5E9',
+    padding: 16,
+    borderRadius: 12,
+  },
+  dualSectionRight: {
+    flex: 1,
+    backgroundColor: '#FFF3E0',
+    padding: 16,
+    borderRadius: 12,
+  },
+  dualSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  dualSectionIcon: {
+    fontSize: 18,
+    marginRight: 6,
+  },
+  dualSectionTitle: {
     fontSize: 14,
+    fontWeight: '700',
     color: '#1a1a1a',
-    lineHeight: 22,
+  },
+  dualSectionText: {
+    fontSize: 13,
+    color: '#333',
+    lineHeight: 20,
   },
   aiInsightsSection: {
     marginBottom: 16,
+  },
+  insightsSectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 12,
   },
   aiInsightCard: {
     backgroundColor: '#f8f9fa',

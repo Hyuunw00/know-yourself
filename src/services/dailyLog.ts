@@ -111,6 +111,24 @@ export const getDailyLogCount = async (userId: string): Promise<number> => {
   return count || 0;
 };
 
+// 오늘 작성한 기록 개수 조회
+export const getTodayLogCount = async (userId: string): Promise<number> => {
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+  const { count, error } = await supabase
+    .from('daily_logs')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('date', today);
+
+  if (error) {
+    console.error('오늘 기록 개수 조회 실패:', error);
+    return 0;
+  }
+
+  return count || 0;
+};
+
 // 특정 날짜 이후의 로그 가져오기 (분석용)
 export const getLogsAfterDate = async (
   userId: string,
