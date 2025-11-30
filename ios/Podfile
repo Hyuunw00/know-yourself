@@ -5,7 +5,7 @@ require Pod::Executable.execute_command('node', ['-p',
     {paths: [process.argv[1]]},
   )', __dir__]).strip
 
-platform :ios, min_ios_version_supported
+platform :ios, '15.1'
 prepare_react_native_project!
 
 linkage = ENV['USE_FRAMEWORKS']
@@ -23,6 +23,19 @@ target 'KnowYourself' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
+  # Firebase (modular headers 필요)
+  pod 'Firebase/Messaging', :modular_headers => true
+  pod 'FirebaseCore', :modular_headers => true
+  pod 'FirebaseCoreInternal', :modular_headers => true
+  pod 'FirebaseInstallations', :modular_headers => true
+  pod 'FirebaseMessaging', :modular_headers => true
+  pod 'GoogleUtilities', :modular_headers => true
+  pod 'GoogleDataTransport', :modular_headers => true
+  pod 'nanopb', :modular_headers => true
+
+  # GoogleService-Info.plist를 리소스로 포함
+  # 이미 KnowYourself 폴더에 있으므로 별도 복사 불필요
+
   post_install do |installer|
     react_native_post_install(
       installer,
@@ -30,5 +43,34 @@ target 'KnowYourself' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # Firebase 관련 Pod만 모듈 맵 생성
+    installer.pods_project.targets.each do |target|
+      if target.name == 'GoogleUtilities' || target.name.start_with?('Firebase')
+        target.build_configurations.each do |config|
+          config.build_settings['DEFINES_MODULE'] = 'YES'
+        end
+      end
+    end
+
+    # GoogleService-Info.plist를 KnowYourself 타겟에 추가
+    project_path = installer.aggregate_targets[0].user_project_path
+    project = Xcodeproj::Project.open(project_path)
+    plist_path = 'KnowYourself/GoogleService-Info.plist'
+
+    # 파일이 이미 프로젝트에 있는지 확인
+    file_ref = project.files.find { |f| f.path == 'GoogleService-Info.plist' }
+
+    unless file_ref
+      # 파일 참조 추가
+      know_yourself_group = project.main_group.find_subpath('KnowYourself', true)
+      file_ref = know_yourself_group.new_reference(plist_path)
+
+      # KnowYourself 타겟의 Resources에 추가
+      target = project.targets.find { |t| t.name == 'KnowYourself' }
+      target.add_resources([file_ref]) if target
+
+      project.save
+    end
   end
 end
