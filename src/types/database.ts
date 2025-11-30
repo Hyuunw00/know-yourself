@@ -29,6 +29,7 @@ export interface UserProfile {
 
   created_at: string;
   updated_at: string;
+  last_app_open_at?: string;
 }
 
 // 온보딩 설문 답변
@@ -81,4 +82,14 @@ export interface AIQuestion {
   context?: Record<string, unknown>;
   answered_at?: string;
   created_at: string;
+}
+
+// FCM 푸시 토큰
+export interface PushToken {
+  id: string;
+  user_id: string;
+  token: string;
+  platform: 'ios' | 'android';
+  created_at: string;
+  updated_at: string;
 }
