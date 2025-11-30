@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "225131919900",
+    "project_id": "gen-lang-client-0298467643",
+    "storage_bucket": "gen-lang-client-0298467643.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:225131919900:android:6459b3c4e0cc40fe607dd9",
+        "android_client_info": {
+          "package_name": "com.knowyourself"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQ5L1XP9tM3XmG5JTfrkqrrA8GIsiU828"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
