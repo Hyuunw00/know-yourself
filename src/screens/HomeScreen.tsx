@@ -18,11 +18,7 @@ import { useAnalysisStore, ANALYSIS_INTERVAL } from '@/stores/analysisStore';
 import { getProfile } from '@/services/profile';
 import { DailyLog, UserProfile, AIQuestion } from '@/types/database';
 import { formatDateShort } from '@/utils/date';
-import {
-  getTodayQuestion,
-  generateQuestion,
-  deleteOldUnansweredQuestions,
-} from '@/services/aiQuestion';
+import { getTodayQuestion } from '@/services/aiQuestion';
 import { AIQuestionModal } from '@/components/AIQuestionModal';
 
 interface Props {
@@ -58,45 +54,23 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
 
   // AI 질문 체크 로직
   useEffect(() => {
-    const checkAIQuestion = async () => {
-      if (!user?.id || !profile || logs.length === 0) return;
+    const showPendingQuestion = async () => {
+      if (!user?.id) return;
 
-      // 오래된 미답변 질문 삭제
-      await deleteOldUnansweredQuestions(user.id);
+      // 오늘의 미답변 질문 확인
+      const question = await getTodayQuestion(user.id);
 
-      // 마지막 기록 날짜 확인
-      const lastLog = logs[0]; // logs는 updated_at 기준 내림차순 정렬됨
-      const lastLogDate = new Date(lastLog.date);
-      const today = new Date();
-      const daysDiff = Math.floor(
-        (today.getTime() - lastLogDate.getTime()) / (1000 * 60 * 60 * 24)
-      );
-
-      // 2일 이상 기록 안 했으면 질문 체크
-      if (daysDiff >= 2) {
-        // 오늘의 질문이 있는지 확인
-        let question = await getTodayQuestion(user.id);
-
-        // 없으면 새로 생성
-        if (!question) {
-          const { getDailyLogs } = await import('@/services/dailyLog');
-          const recentLogs = await getDailyLogs(user.id, { limit: 10 });
-          question = await generateQuestion(user.id, profile, recentLogs);
-        }
-
-        // 질문이 있으면 모달 표시
-        if (question && !question.answer_text) {
-          setAiQuestion(question);
-          setShowQuestionModal(true);
-        }
+      // 질문이 있으면 모달 표시
+      if (question && !question.answer_text) {
+        setAiQuestion(question);
+        setShowQuestionModal(true);
       }
     };
 
-    // profile과 logs가 모두 로드된 후에 체크
-    if (user?.id && profile && !isLoading) {
-      checkAIQuestion();
+    if (user?.id && !isLoading) {
+      showPendingQuestion();
     }
-  }, [user?.id, profile, logs, isLoading]);
+  }, [user?.id, isLoading]);
 
   const handleSaveLog = async (text: string) => {
     if (!user?.id) return;
