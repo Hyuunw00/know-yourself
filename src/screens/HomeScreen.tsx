@@ -15,7 +15,7 @@ import { ActivityGrass } from '@/components/ActivityGrass';
 import { useDailyLogStore } from '@/stores/dailyLogStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useAnalysisStore, ANALYSIS_INTERVAL } from '@/stores/analysisStore';
-import { getProfile } from '@/services/profile';
+import { getProfile, updateLastAppOpenAt } from '@/services/profile';
 import { DailyLog, UserProfile, AIQuestion } from '@/types/database';
 import { formatDateShort } from '@/utils/date';
 import { getTodayQuestion } from '@/services/aiQuestion';
@@ -44,11 +44,12 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
   const { user, logout } = useAuthStore();
   const { checkAndTriggerAnalysis } = useAnalysisStore();
 
-  // 화면 로드 시 데이터 불러오기
+  // 화면 로드 시 데이터 불러오기 및 마지막 앱 접근 시간 업데이트
   useEffect(() => {
     if (user?.id) {
       fetchLogs(user.id);
       getProfile(user.id).then(setProfile);
+      updateLastAppOpenAt(user.id);
     }
   }, [fetchLogs, user?.id]);
 

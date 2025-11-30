@@ -63,3 +63,15 @@ export const checkProfileExists = async (userId: string): Promise<boolean> => {
 
   return !!data;
 };
+
+// 마지막 앱 접근 시간 업데이트
+export const updateLastAppOpenAt = async (userId: string): Promise<void> => {
+  const { error } = await supabase
+    .from('user_profiles')
+    .update({ last_app_open_at: new Date().toISOString() })
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('last_app_open_at 업데이트 실패:', error.message);
+  }
+};
