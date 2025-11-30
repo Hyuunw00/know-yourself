@@ -13,6 +13,7 @@ export interface AnalysisResult {
 export const requestAnalysis = async (
   profile: UserProfile,
   logs: DailyLog[],
+  aiQuestions: any[],
   previousAnalysis?: AIAnalysis | null,
   analysisNumber: number = 1
 ): Promise<AnalysisResult | null> => {
@@ -27,11 +28,16 @@ export const requestAnalysis = async (
         interests: profile.interests,
         values: profile.values,
         goals: profile.goals,
-        // personality_keywords, strengths, weaknesses는 AI가 복사하지 않도록 제외
+        strengths: profile.strengths,
+        weaknesses: profile.weaknesses,
       },
       logs: logs.map(log => ({
         date: log.date,
         text: log.text,
+      })),
+      aiQuestions: aiQuestions.map(qa => ({
+        question_text: qa.question_text,
+        answer_text: qa.answer_text,
       })),
       previousAnalysis: previousAnalysis
         ? {

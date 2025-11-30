@@ -7,6 +7,7 @@ import {
   getAllAnalyses,
 } from '@/services/analysis';
 import { getLogsAfterDate } from '@/services/dailyLog';
+import { getAllAnsweredQuestions } from '@/services/aiQuestion';
 
 // 분석 트리거 간격 (이 값만 바꾸면 5, 10, 20 등으로 조절 가능)
 export const ANALYSIS_INTERVAL = 10;
@@ -70,10 +71,14 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
         latestAnalysis?.created_at,
       );
 
+      // 답변된 AI 질문들 가져오기
+      const aiQuestions = await getAllAnsweredQuestions(userId);
+
       // AI 분석 요청
       const result = await requestAnalysis(
         profile,
         logsToAnalyze,
+        aiQuestions,
         latestAnalysis,
         analysisNumber,
       );
