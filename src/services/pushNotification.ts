@@ -1,5 +1,5 @@
 import messaging from '@react-native-firebase/messaging';
-import { Platform } from 'react-native';
+import { Platform, Alert, PermissionsAndroid } from 'react-native';
 import { supabase } from './supabase';
 
 /**
@@ -7,6 +7,19 @@ import { supabase } from './supabase';
  */
 export const requestPushPermission = async (): Promise<boolean> => {
   try {
+    // Android 13+ (API 33+)에서는 런타임 권한 요청 필요
+    if (Platform.OS === 'android' && Platform.Version >= 33) {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+      );
+
+      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('푸시 알림 권한 거부됨');
+        return false;
+      }
+    }
+
+    // iOS 또는 Android < 13에서는 Firebase 권한 요청
     const authStatus = await messaging().requestPermission();
     const enabled =
       authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
@@ -54,20 +67,17 @@ export const saveFCMToken = async (
   try {
     const platform = Platform.OS as 'ios' | 'android';
 
-    // UPSERT: 이미 존재하면 업데이트, 없으면 생성
+    // 기존 토큰 삭제 후 새 토큰 저장 (유저당 하나의 토큰만 유지)
+    await supabase.from('push_tokens').delete().eq('user_id', userId);
+
     const { error } = await supabase
       .from('push_tokens')
-      .upsert(
-        {
-          user_id: userId,
-          token,
-          platform,
-          updated_at: new Date().toISOString(),
-        },
-        {
-          onConflict: 'user_id,token',
-        },
-      )
+      .insert({
+        user_id: userId,
+        token,
+        platform,
+        updated_at: new Date().toISOString(),
+      })
       .select()
       .single();
 
@@ -155,8 +165,14 @@ export const setupForegroundMessageHandler = () => {
   const unsubscribe = messaging().onMessage(async remoteMessage => {
     console.log('포그라운드 메시지 수신:', remoteMessage);
 
-    // 포그라운드에서도 알림 표시 (선택사항)
-    // 필요시 로컬 알림 표시 로직 추가
+    // 포그라운드에서도 알림 표시
+    if (remoteMessage.notification) {
+      Alert.alert(
+        remoteMessage.notification.title || '알림',
+        remoteMessage.notification.body || '',
+        [{ text: '확인' }],
+      );
+    }
   });
 
   return unsubscribe;
