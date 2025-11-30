@@ -73,9 +73,9 @@ export const ProfileScreen = ({ onBack }: Props) => {
 
   const handleEditComplete = () => {
     setIsEditing(false);
-    fetchProfile(); // 수정 후 프로필 다시 불러오기
+    fetchProfile();
     if (user?.id) {
-      fetchLatestAnalysis(user.id); // 분석 결과도 다시 불러오기
+      fetchLatestAnalysis(user.id);
     }
   };
 
@@ -89,7 +89,6 @@ export const ProfileScreen = ({ onBack }: Props) => {
     );
   }
 
-  // 수정 모드일 때
   if (isEditing) {
     return <ProfileEditScreen onBack={handleEditComplete} />;
   }
@@ -110,7 +109,7 @@ export const ProfileScreen = ({ onBack }: Props) => {
           </TouchableOpacity>
         </View>
 
-        {/* 프로필 요약 카드 */}
+        {/* 기본 정보 카드 */}
         <View style={styles.profileCard}>
           <Text style={styles.profileName}>{profile?.name || '이름 없음'}</Text>
           <View style={styles.profileTags}>
@@ -139,7 +138,7 @@ export const ProfileScreen = ({ onBack }: Props) => {
 
         {/* AI 분석 결과 섹션 */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>AI 분석 결과</Text>
+          <Text style={styles.sectionTitle}>🤖 AI 분석 결과</Text>
           {isAnalyzing ? (
             <View style={styles.aiCard}>
               <ActivityIndicator color="#4CAF50" />
@@ -147,17 +146,97 @@ export const ProfileScreen = ({ onBack }: Props) => {
             </View>
           ) : latestAnalysis ? (
             <View style={styles.aiCard}>
-              {/* 한 줄 정의 */}
+              {/* 한 줄 정의 - 강조 */}
               {latestAnalysis.one_liner && (
-                <View style={styles.oneLinerSection}>
+                <View style={styles.oneLinerContainer}>
                   <Text style={styles.oneLiner}>
                     "{latestAnalysis.one_liner}"
                   </Text>
                 </View>
               )}
 
-              {/* 핵심 지표 */}
-              <View style={styles.statsSection}>
+              {/* AI가 발견한 특징 */}
+              {latestAnalysis.keywords && latestAnalysis.keywords.length > 0 && (
+                <View style={styles.keywordsContainer}>
+                  <Text style={styles.subsectionTitle}>💡 AI가 발견한 나의 특징</Text>
+                  <View style={styles.keywords}>
+                    {latestAnalysis.keywords.map((keyword, index) => (
+                      <View key={index} style={styles.keywordTag}>
+                        <Text style={styles.keywordText}>#{keyword}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {/* 강점 & 약점 */}
+              <View style={styles.dualSection}>
+                {latestAnalysis.strengths_analysis && (
+                  <View style={styles.strengthCard}>
+                    <View style={styles.cardHeader}>
+                      <Text style={styles.cardIcon}>💪</Text>
+                      <Text style={styles.cardTitle}>강점</Text>
+                    </View>
+                    <Text style={styles.cardContent}>
+                      {latestAnalysis.strengths_analysis}
+                    </Text>
+                  </View>
+                )}
+
+                {latestAnalysis.growth_points && (
+                  <View style={styles.weaknessCard}>
+                    <View style={styles.cardHeader}>
+                      <Text style={styles.cardIcon}>🌱</Text>
+                      <Text style={styles.cardTitle}>개선점</Text>
+                    </View>
+                    <Text style={styles.cardContent}>
+                      {latestAnalysis.growth_points}
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              {/* 감정 패턴 */}
+              {latestAnalysis.emotional_patterns && (
+                <View style={styles.patternCard}>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.cardIcon}>😊</Text>
+                    <Text style={styles.cardTitle}>감정 패턴</Text>
+                  </View>
+                  <Text style={styles.cardContent}>
+                    {latestAnalysis.emotional_patterns}
+                  </Text>
+                </View>
+              )}
+
+              {/* 행동 습관 */}
+              {latestAnalysis.behavioral_habits && (
+                <View style={styles.habitCard}>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.cardIcon}>🎯</Text>
+                    <Text style={styles.cardTitle}>행동 습관</Text>
+                  </View>
+                  <Text style={styles.cardContent}>
+                    {latestAnalysis.behavioral_habits}
+                  </Text>
+                </View>
+              )}
+
+              {/* 인사이트 */}
+              {latestAnalysis.insights && latestAnalysis.insights.length > 0 && (
+                <View style={styles.insightsContainer}>
+                  <Text style={styles.subsectionTitle}>🔮 성장 인사이트</Text>
+                  {latestAnalysis.insights.map((insight, index) => (
+                    <View key={index} style={styles.insightCard}>
+                      <Text style={styles.insightTitle}>{insight.title}</Text>
+                      <Text style={styles.insightContent}>{insight.content}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* 통계 정보 */}
+              <View style={styles.statsContainer}>
                 <View style={styles.statItem}>
                   <Text style={styles.statNumber}>
                     {latestAnalysis.analysis_number}
@@ -172,67 +251,6 @@ export const ProfileScreen = ({ onBack }: Props) => {
                   <Text style={styles.statLabel}>개 기록</Text>
                 </View>
               </View>
-
-              {/* AI가 발견한 키워드 */}
-              {latestAnalysis.keywords &&
-                latestAnalysis.keywords.length > 0 && (
-                  <View style={styles.aiKeywordsSection}>
-                    <View style={styles.aiKeywords}>
-                      {latestAnalysis.keywords.map((keyword, index) => (
-                        <View key={index} style={styles.aiKeywordTag}>
-                          <Text style={styles.aiKeywordText}>#{keyword}</Text>
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-                )}
-
-              {/* 강점 & 성장 포인트 (좌우 분할) */}
-              <View style={styles.dualSection}>
-                {latestAnalysis.strengths_analysis && (
-                  <View style={styles.dualSectionLeft}>
-                    <View style={styles.dualSectionHeader}>
-                      <Text style={styles.dualSectionIcon}>💪</Text>
-                      <Text style={styles.dualSectionTitle}>강점</Text>
-                    </View>
-                    <Text style={styles.dualSectionText}>
-                      {latestAnalysis.strengths_analysis}
-                    </Text>
-                  </View>
-                )}
-
-                {latestAnalysis.growth_points && (
-                  <View style={styles.dualSectionRight}>
-                    <View style={styles.dualSectionHeader}>
-                      <Text style={styles.dualSectionIcon}>🌱</Text>
-                      <Text style={styles.dualSectionTitle}>성장점</Text>
-                    </View>
-                    <Text style={styles.dualSectionText}>
-                      {latestAnalysis.growth_points}
-                    </Text>
-                  </View>
-                )}
-              </View>
-
-              {/* 인사이트 */}
-              {latestAnalysis.insights &&
-                latestAnalysis.insights.length > 0 && (
-                  <View style={styles.aiInsightsSection}>
-                    <Text style={styles.insightsSectionTitle}>
-                      🔮 최신 인사이트
-                    </Text>
-                    {latestAnalysis.insights.map((insight, index) => (
-                      <View key={index} style={styles.aiInsightCard}>
-                        <Text style={styles.aiInsightTitle}>
-                          {insight.title}
-                        </Text>
-                        <Text style={styles.aiInsightContent}>
-                          {insight.content}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
             </View>
           ) : (
             <View style={styles.aiCard}>
@@ -325,8 +343,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: 'bold',
     color: '#1a1a1a',
     marginHorizontal: 16,
     marginBottom: 12,
@@ -334,51 +352,142 @@ const styles = StyleSheet.create({
   aiCard: {
     backgroundColor: '#fff',
     marginHorizontal: 16,
-    padding: 24,
-    borderRadius: 12,
-    alignItems: 'center',
+    padding: 20,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   aiPlaceholder: {
     fontSize: 16,
     color: '#666',
     marginBottom: 8,
+    textAlign: 'center',
   },
   aiSubtext: {
     fontSize: 14,
     color: '#999',
+    textAlign: 'center',
   },
-  oneLinerSection: {
-    marginBottom: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+  oneLinerContainer: {
+    marginBottom: 24,
+    paddingBottom: 20,
+    borderBottomWidth: 2,
+    borderBottomColor: '#4CAF50',
   },
   oneLiner: {
-    fontSize: 17,
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    lineHeight: 30,
+    textAlign: 'center',
+  },
+  keywordsContainer: {
+    marginBottom: 20,
+  },
+  subsectionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 12,
+  },
+  keywords: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  keywordTag: {
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  keywordText: {
+    fontSize: 14,
+    color: '#4CAF50',
+    fontWeight: '600',
+  },
+  dualSection: {
+    gap: 12,
+    marginBottom: 12,
+  },
+  strengthCard: {
+    backgroundColor: '#E8F5E9',
+    padding: 16,
+    borderRadius: 12,
+  },
+  weaknessCard: {
+    backgroundColor: '#FFF3E0',
+    padding: 16,
+    borderRadius: 12,
+  },
+  patternCard: {
+    backgroundColor: '#F3E5F5',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  habitCard: {
+    backgroundColor: '#E3F2FD',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  cardIcon: {
+    fontSize: 18,
+    marginRight: 6,
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
+  cardContent: {
+    fontSize: 14,
+    color: '#333',
+    lineHeight: 22,
+  },
+  insightsContainer: {
+    marginBottom: 20,
+  },
+  insightCard: {
+    backgroundColor: '#f8f9fa',
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  insightTitle: {
+    fontSize: 14,
     fontWeight: '600',
     color: '#1a1a1a',
-    lineHeight: 26,
-    textAlign: 'center',
-    fontStyle: 'italic',
+    marginBottom: 6,
   },
-  aiKeywordsSection: {
-    marginBottom: 16,
+  insightContent: {
+    fontSize: 13,
+    color: '#666',
+    lineHeight: 20,
   },
-  statsSection: {
+  statsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
-    paddingVertical: 16,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
   },
   statItem: {
     alignItems: 'center',
     paddingHorizontal: 24,
   },
   statNumber: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#4CAF50',
     marginBottom: 4,
@@ -391,132 +500,5 @@ const styles = StyleSheet.create({
     width: 1,
     height: 32,
     backgroundColor: '#ddd',
-  },
-  aiSubsectionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
-    marginBottom: 8,
-  },
-  aiKeywords: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    justifyContent: 'center',
-  },
-  aiKeywordTag: {
-    backgroundColor: '#e8f5e9',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  aiKeywordText: {
-    fontSize: 13,
-    color: '#4CAF50',
-    fontWeight: '600',
-  },
-  dualSection: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
-  },
-  dualSectionLeft: {
-    flex: 1,
-    backgroundColor: '#E8F5E9',
-    padding: 16,
-    borderRadius: 12,
-  },
-  dualSectionRight: {
-    flex: 1,
-    backgroundColor: '#FFF3E0',
-    padding: 16,
-    borderRadius: 12,
-  },
-  dualSectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  dualSectionIcon: {
-    fontSize: 18,
-    marginRight: 6,
-  },
-  dualSectionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1a1a1a',
-  },
-  dualSectionText: {
-    fontSize: 13,
-    color: '#333',
-    lineHeight: 20,
-  },
-  aiInsightsSection: {
-    marginBottom: 16,
-  },
-  insightsSectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    marginBottom: 12,
-  },
-  aiInsightCard: {
-    backgroundColor: '#f8f9fa',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  aiInsightTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1a1a1a',
-    marginBottom: 4,
-  },
-  aiInsightContent: {
-    fontSize: 13,
-    color: '#666',
-    lineHeight: 20,
-  },
-  aiMeta: {
-    fontSize: 12,
-    color: '#999',
-    textAlign: 'right',
-    marginTop: 8,
-  },
-  infoCard: {
-    backgroundColor: '#fff',
-    marginHorizontal: 16,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  infoLabel: {
-    fontSize: 14,
-    color: '#666',
-  },
-  infoValue: {
-    fontSize: 14,
-    color: '#1a1a1a',
-    fontWeight: '500',
-  },
-  editFullButton: {
-    backgroundColor: '#4CAF50',
-    marginHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 40,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  editFullButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });

@@ -6,6 +6,8 @@ export interface AnalysisResult {
   keywords: string[];
   strengths_analysis: string;
   growth_points: string;
+  emotional_patterns?: string;
+  behavioral_habits?: string;
   insights: { title: string; content: string }[];
 }
 
@@ -76,6 +78,8 @@ export const saveAnalysis = async (
       keywords: result.keywords,
       strengths_analysis: result.strengths_analysis,
       growth_points: result.growth_points,
+      emotional_patterns: result.emotional_patterns,
+      behavioral_habits: result.behavioral_habits,
       insights: result.insights,
       raw_response: result,
     })

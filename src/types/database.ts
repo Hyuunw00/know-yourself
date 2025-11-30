@@ -60,8 +60,10 @@ export interface AIAnalysis {
   log_count: number; // 분석 시점 기록 수 (10, 20, 30...)
   one_liner?: string; // 한 줄 정의
   keywords?: string[]; // AI가 발견한 핵심 키워드
-  strengths_analysis?: string; // 강점 분석 코멘트
-  growth_points?: string; // 성장 포인트 코멘트
+  strengths_analysis?: string; // 강점 분석
+  growth_points?: string; // 약점/개선점 분석
+  emotional_patterns?: string; // 감정 패턴 분석
+  behavioral_habits?: string; // 행동 습관 분석
   insights?: AIInsight[]; // AI 인사이트들
   raw_response?: Record<string, unknown>; // AI 원본 응답 전체
   created_at: string;
