@@ -1,22 +1,21 @@
 import { supabase } from './supabase';
 import { AIQuestion, UserProfile, DailyLog } from '@/types';
 
-// 오늘의 질문 조회
+// 미답변 질문 중 가장 최근 것 조회
 export const getTodayQuestion = async (
   userId: string
 ): Promise<AIQuestion | null> => {
-  const today = new Date().toISOString().split('T')[0];
-
   const { data, error } = await supabase
     .from('ai_questions')
     .select('*')
     .eq('user_id', userId)
-    .gte('created_at', `${today}T00:00:00`)
-    .lt('created_at', `${today}T23:59:59`)
+    .is('answer_text', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   if (error) {
-    console.error('오늘의 질문 조회 실패:', error);
+    console.error('미답변 질문 조회 실패:', error);
     return null;
   }
 

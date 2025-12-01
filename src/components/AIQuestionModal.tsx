@@ -19,6 +19,8 @@ interface Props {
   onSkip: () => void;
 }
 
+const MAX_LENGTH = 500;
+
 export const AIQuestionModal = ({
   visible,
   questionText,
@@ -81,7 +83,11 @@ export const AIQuestionModal = ({
                 onChangeText={setAnswer}
                 textAlignVertical="top"
                 editable={!isSubmitting}
+                maxLength={MAX_LENGTH}
               />
+              <Text style={styles.charCount}>
+                {answer.length} / {MAX_LENGTH}
+              </Text>
             </View>
 
             <View style={styles.buttonContainer}>
@@ -128,10 +134,9 @@ const styles = StyleSheet.create({
     maxHeight: '80%',
     backgroundColor: '#fff',
     borderRadius: 20,
-    overflow: 'hidden',
   },
   scrollView: {
-    flex: 1,
+    maxHeight: '100%',
   },
   scrollContent: {
     padding: 24,
@@ -180,6 +185,12 @@ const styles = StyleSheet.create({
     minHeight: 150,
     borderWidth: 1,
     borderColor: '#e0e0e0',
+    marginBottom: 8,
+  },
+  charCount: {
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'right',
   },
   buttonContainer: {
     gap: 12,
