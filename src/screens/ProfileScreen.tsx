@@ -6,11 +6,13 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  Switch,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores/authStore';
 import { useAnalysisStore } from '@/stores/analysisStore';
-import { getProfile } from '@/services/profile';
+import { getProfile, toggleNotification, deleteAccount } from '@/services/profile';
 import { UserProfile } from '@/types';
 import { ProfileEditScreen } from './ProfileEditScreen';
 
@@ -19,12 +21,13 @@ interface Props {
 }
 
 export const ProfileScreen = ({ onBack }: Props) => {
-  const { user } = useAuthStore();
+  const { user, setUser } = useAuthStore();
   const { latestAnalysis, isAnalyzing, fetchLatestAnalysis } =
     useAnalysisStore();
   const [profile, setProfile] = useState<Partial<UserProfile> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [notificationEnabled, setNotificationEnabled] = useState(true);
 
   const fetchProfile = useCallback(async () => {
     if (!user?.id) return;
@@ -32,6 +35,7 @@ export const ProfileScreen = ({ onBack }: Props) => {
     const data = await getProfile(user.id);
     if (data) {
       setProfile(data);
+      setNotificationEnabled(data.notification_enabled ?? true);
     }
     setIsLoading(false);
   }, [user?.id]);
@@ -42,6 +46,49 @@ export const ProfileScreen = ({ onBack }: Props) => {
       fetchLatestAnalysis(user.id);
     }
   }, [fetchProfile, fetchLatestAnalysis, user?.id]);
+
+  const handleToggleNotification = async (value: boolean) => {
+    if (!user?.id) return;
+
+    setNotificationEnabled(value);
+    const result = await toggleNotification(user.id, value);
+
+    if (!result.success) {
+      Alert.alert('오류', '알림 설정 변경에 실패했습니다');
+      setNotificationEnabled(!value);
+    }
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      '계정 삭제',
+      '정말로 계정을 삭제하시겠습니까?\n모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.',
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '삭제',
+          style: 'destructive',
+          onPress: async () => {
+            if (!user?.id) return;
+
+            const result = await deleteAccount(user.id);
+            if (result.success) {
+              Alert.alert('완료', '계정이 삭제되었습니다', [
+                {
+                  text: '확인',
+                  onPress: () => {
+                    setUser(null);
+                  },
+                },
+              ]);
+            } else {
+              Alert.alert('오류', '계정 삭제에 실패했습니다');
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const getGenderLabel = (gender?: string) => {
     switch (gender) {
@@ -260,6 +307,47 @@ export const ProfileScreen = ({ onBack }: Props) => {
               </Text>
             </View>
           )}
+        </View>
+
+        {/* 설정 섹션 */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>⚙️ 설정</Text>
+          <View style={styles.settingsCard}>
+            {/* 알림 설정 */}
+            <View style={styles.settingItem}>
+              <View style={styles.settingInfo}>
+                <Text style={styles.settingLabel}>푸시 알림</Text>
+                <Text style={styles.settingDescription}>
+                  AI 질문, 분석 완료 등의 알림을 받습니다
+                </Text>
+              </View>
+              <Switch
+                value={notificationEnabled}
+                onValueChange={handleToggleNotification}
+                trackColor={{ false: '#d1d5db', true: '#86efac' }}
+                thumbColor={notificationEnabled ? '#4CAF50' : '#f3f4f6'}
+              />
+            </View>
+
+            {/* 구분선 */}
+            <View style={styles.settingDivider} />
+
+            {/* 계정 삭제 */}
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={handleDeleteAccount}
+            >
+              <View style={styles.settingInfo}>
+                <Text style={[styles.settingLabel, styles.dangerText]}>
+                  계정 삭제
+                </Text>
+                <Text style={styles.settingDescription}>
+                  모든 데이터가 영구적으로 삭제됩니다
+                </Text>
+              </View>
+              <Text style={styles.dangerText}>→</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -500,5 +588,44 @@ const styles = StyleSheet.create({
     width: 1,
     height: 32,
     backgroundColor: '#ddd',
+  },
+  settingsCard: {
+    backgroundColor: '#fff',
+    marginHorizontal: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  settingItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+  },
+  settingInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
+  settingLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 4,
+  },
+  settingDescription: {
+    fontSize: 13,
+    color: '#666',
+    lineHeight: 18,
+  },
+  settingDivider: {
+    height: 1,
+    backgroundColor: '#f0f0f0',
+    marginHorizontal: 16,
+  },
+  dangerText: {
+    color: '#ff4444',
   },
 });

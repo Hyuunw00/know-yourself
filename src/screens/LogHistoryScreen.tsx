@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,29 +6,86 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  RefreshControl,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { DailyLogModal } from '@/components/DailyLogModal';
-import { useDailyLogStore } from '@/stores/dailyLogStore';
 import { useAuthStore } from '@/stores/authStore';
 import { DailyLog } from '@/types/database';
 import { formatDateLong, formatTime } from '@/utils/date';
+import {
+  getDailyLogs,
+  updateDailyLog,
+  deleteDailyLog,
+} from '@/services/dailyLog';
 
 interface Props {
   onBack: () => void;
 }
 
+const PAGE_SIZE = 20;
+
 export const LogHistoryScreen = ({ onBack }: Props) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedLog, setSelectedLog] = useState<DailyLog | null>(null);
-  const { logs, isLoading, fetchLogs, updateLog, deleteLog } = useDailyLogStore();
+  const [logs, setLogs] = useState<DailyLog[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+  const [startDate, setStartDate] = useState<string | undefined>();
+  const [endDate, setEndDate] = useState<string | undefined>();
   const { user } = useAuthStore();
 
+  const loadLogs = useCallback(
+    async (offset: number = 0) => {
+      if (!user?.id) return;
+
+      if (offset === 0) {
+        setIsLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
+
+      const data = await getDailyLogs(user.id, {
+        limit: PAGE_SIZE,
+        offset,
+        startDate,
+        endDate,
+      });
+
+      if (offset === 0) {
+        setLogs(data);
+      } else {
+        setLogs(prev => [...prev, ...data]);
+      }
+
+      setHasMore(data.length === PAGE_SIZE);
+      setIsLoading(false);
+      setIsLoadingMore(false);
+      setRefreshing(false);
+    },
+    [user?.id, startDate, endDate]
+  );
+
   useEffect(() => {
-    if (user?.id) {
-      fetchLogs(user.id);
+    loadLogs();
+  }, [loadLogs]);
+
+  const handleLoadMore = () => {
+    if (!isLoadingMore && hasMore && !isLoading) {
+      loadLogs(logs.length);
     }
-  }, [fetchLogs, user?.id]);
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    loadLogs(0);
+  };
 
   const handleLogPress = (log: DailyLog) => {
     setSelectedLog(log);
@@ -36,13 +93,19 @@ export const LogHistoryScreen = ({ onBack }: Props) => {
   };
 
   const handleUpdateLog = async (logId: string, text: string) => {
-    await updateLog(logId, text);
+    const updated = await updateDailyLog(logId, text);
+    if (updated) {
+      setLogs(prev => prev.map(log => (log.id === logId ? updated : log)));
+    }
     setSelectedLog(null);
     setModalVisible(false);
   };
 
   const handleDeleteLog = async (logId: string) => {
-    await deleteLog(logId);
+    const success = await deleteDailyLog(logId);
+    if (success) {
+      setLogs(prev => prev.filter(log => log.id !== logId));
+    }
     setSelectedLog(null);
     setModalVisible(false);
   };
@@ -52,19 +115,50 @@ export const LogHistoryScreen = ({ onBack }: Props) => {
     setModalVisible(false);
   };
 
+  const clearFilters = () => {
+    setStartDate(undefined);
+    setEndDate(undefined);
+  };
+
   const renderLogItem = ({ item }: { item: DailyLog }) => (
-    <TouchableOpacity style={styles.logItem} onPress={() => handleLogPress(item)}>
+    <TouchableOpacity
+      style={styles.logItem}
+      onPress={() => handleLogPress(item)}
+    >
       <View style={styles.logHeader}>
         <Text style={styles.logDate}>{formatDateLong(item.date)}</Text>
         <Text style={styles.logTime}>{formatTime(item.updated_at)}</Text>
       </View>
-      <Text style={styles.logText} numberOfLines={3}>{item.text}</Text>
+      <Text style={styles.logText} numberOfLines={3}>
+        {item.text}
+      </Text>
     </TouchableOpacity>
   );
 
+  const renderFooter = () => {
+    if (!isLoadingMore) return null;
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator color="#4CAF50" />
+      </View>
+    );
+  };
+
+  const renderEmpty = () => {
+    if (isLoading) return null;
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>
+          {startDate || endDate
+            ? '해당 기간에 기록이 없어요'
+            : '아직 기록이 없어요'}
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* 헤더 */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack}>
           <Text style={styles.backButton}>← 뒤로</Text>
@@ -73,23 +167,113 @@ export const LogHistoryScreen = ({ onBack }: Props) => {
         <View style={styles.placeholder} />
       </View>
 
-      {/* 목록 */}
-      {isLoading ? (
-        <ActivityIndicator color="#4CAF50" style={styles.loading} />
-      ) : logs.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>아직 기록이 없어요</Text>
+      <View style={styles.filterContainer}>
+        <View style={styles.filterRow}>
+          <TouchableOpacity
+            style={styles.dateFilterButton}
+            onPress={() => setShowStartPicker(true)}
+          >
+            <Text style={styles.dateFilterLabel}>시작일</Text>
+            <Text
+              style={
+                startDate ? styles.dateFilterText : styles.dateFilterPlaceholder
+              }
+            >
+              {startDate || '선택'}
+            </Text>
+          </TouchableOpacity>
+
+          <Text style={styles.dateSeparator}>~</Text>
+
+          <TouchableOpacity
+            style={styles.dateFilterButton}
+            onPress={() => setShowEndPicker(true)}
+          >
+            <Text style={styles.dateFilterLabel}>종료일</Text>
+            <Text
+              style={
+                endDate ? styles.dateFilterText : styles.dateFilterPlaceholder
+              }
+            >
+              {endDate || '선택'}
+            </Text>
+          </TouchableOpacity>
+
+          {(startDate || endDate) && (
+            <TouchableOpacity style={styles.clearButton} onPress={clearFilters}>
+              <Text style={styles.clearButtonText}>✕</Text>
+            </TouchableOpacity>
+          )}
         </View>
-      ) : (
-        <FlatList
-          data={logs}
-          keyExtractor={(item) => item.id}
-          renderItem={renderLogItem}
-          contentContainerStyle={styles.listContent}
+      </View>
+
+      {showStartPicker && (
+        <DateTimePicker
+          value={startDate ? new Date(startDate) : new Date()}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={(event, date) => {
+            if (Platform.OS === 'android') {
+              setShowStartPicker(false);
+            }
+            if (event.type === 'set' && date) {
+              setStartDate(date.toISOString().split('T')[0]);
+              if (Platform.OS === 'ios') {
+                setShowStartPicker(false);
+              }
+            } else if (event.type === 'dismissed') {
+              setShowStartPicker(false);
+            }
+          }}
+          maximumDate={endDate ? new Date(endDate) : new Date()}
         />
       )}
 
-      {/* 수정 모달 */}
+      {showEndPicker && (
+        <DateTimePicker
+          value={endDate ? new Date(endDate) : new Date()}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={(event, date) => {
+            if (Platform.OS === 'android') {
+              setShowEndPicker(false);
+            }
+            if (event.type === 'set' && date) {
+              setEndDate(date.toISOString().split('T')[0]);
+              if (Platform.OS === 'ios') {
+                setShowEndPicker(false);
+              }
+            } else if (event.type === 'dismissed') {
+              setShowEndPicker(false);
+            }
+          }}
+          minimumDate={startDate ? new Date(startDate) : undefined}
+          maximumDate={new Date()}
+        />
+      )}
+
+      {isLoading ? (
+        <ActivityIndicator color="#4CAF50" style={styles.loading} />
+      ) : (
+        <FlatList
+          data={logs}
+          keyExtractor={item => item.id}
+          renderItem={renderLogItem}
+          contentContainerStyle={styles.listContent}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={renderFooter}
+          ListEmptyComponent={renderEmpty}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor="#4CAF50"
+            />
+          }
+        />
+      )}
+
       <DailyLogModal
         visible={modalVisible}
         onClose={handleCloseModal}
@@ -127,6 +311,55 @@ const styles = StyleSheet.create({
   placeholder: {
     width: 50,
   },
+  filterContainer: {
+    backgroundColor: '#fff',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  filterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  dateFilterButton: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  dateFilterLabel: {
+    fontSize: 11,
+    color: '#666',
+    marginBottom: 4,
+  },
+  dateFilterText: {
+    fontSize: 14,
+    color: '#1a1a1a',
+  },
+  dateFilterPlaceholder: {
+    fontSize: 14,
+    color: '#999',
+  },
+  dateSeparator: {
+    fontSize: 16,
+    color: '#999',
+  },
+  clearButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#ff4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  clearButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
   loading: {
     marginTop: 40,
   },
@@ -134,6 +367,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 60,
   },
   emptyText: {
     fontSize: 16,
@@ -141,6 +375,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: 16,
+    flexGrow: 1,
   },
   logItem: {
     backgroundColor: '#fff',
@@ -172,5 +407,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#1a1a1a',
     lineHeight: 22,
+  },
+  footerLoader: {
+    paddingVertical: 20,
+    alignItems: 'center',
   },
 });

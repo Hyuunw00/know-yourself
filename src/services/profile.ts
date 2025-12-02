@@ -75,3 +75,94 @@ export const updateLastAppOpenAt = async (userId: string): Promise<void> => {
     console.error('last_app_open_at 업데이트 실패:', error.message);
   }
 };
+
+// 알림 설정 토글
+export const toggleNotification = async (
+  userId: string,
+  enabled: boolean
+): Promise<{ success: boolean; error?: string }> => {
+  const { error } = await supabase
+    .from('user_profiles')
+    .update({ notification_enabled: enabled })
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('알림 설정 변경 실패:', error.message);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+};
+
+// 계정 삭제 (사용자 데이터 모두 삭제)
+export const deleteAccount = async (
+  userId: string
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    // 1. daily_logs 삭제
+    const { error: logsError } = await supabase
+      .from('daily_logs')
+      .delete()
+      .eq('user_id', userId);
+
+    if (logsError) throw logsError;
+
+    // 2. ai_analyses 삭제
+    const { error: analysesError } = await supabase
+      .from('ai_analyses')
+      .delete()
+      .eq('user_id', userId);
+
+    if (analysesError) throw analysesError;
+
+    // 3. ai_questions 삭제
+    const { error: questionsError } = await supabase
+      .from('ai_questions')
+      .delete()
+      .eq('user_id', userId);
+
+    if (questionsError) throw questionsError;
+
+    // 4. notifications 삭제
+    const { error: notificationsError } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('user_id', userId);
+
+    if (notificationsError) throw notificationsError;
+
+    // 5. push_tokens 삭제
+    const { error: tokensError } = await supabase
+      .from('push_tokens')
+      .delete()
+      .eq('user_id', userId);
+
+    if (tokensError) throw tokensError;
+
+    // 6. onboarding_answers 삭제
+    const { error: answersError } = await supabase
+      .from('onboarding_answers')
+      .delete()
+      .eq('user_id', userId);
+
+    if (answersError) throw answersError;
+
+    // 7. user_profiles 삭제
+    const { error: profileError } = await supabase
+      .from('user_profiles')
+      .delete()
+      .eq('user_id', userId);
+
+    if (profileError) throw profileError;
+
+    // 8. Supabase Auth 계정 삭제
+    const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+
+    if (authError) throw authError;
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('계정 삭제 실패:', error.message);
+    return { success: false, error: error.message };
+  }
+};

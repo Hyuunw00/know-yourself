@@ -32,6 +32,7 @@ export const getDailyLogs = async (
   userId: string,
   options?: {
     limit?: number;
+    offset?: number;
     startDate?: string;
     endDate?: string;
   }
@@ -50,7 +51,9 @@ export const getDailyLogs = async (
 
   query = query.order('updated_at', { ascending: false });
 
-  if (options?.limit) {
+  if (options?.limit && options?.offset !== undefined) {
+    query = query.range(options.offset, options.offset + options.limit - 1);
+  } else if (options?.limit) {
     query = query.limit(options.limit);
   }
 

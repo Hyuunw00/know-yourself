@@ -27,6 +27,8 @@ export interface UserProfile {
   stress_relief?: string; // 스트레스 해소법
   bio?: string; // 자기소개 한 줄
 
+  notification_enabled?: boolean; // 알림 수신 여부 (기본값: true)
+
   created_at: string;
   updated_at: string;
   last_app_open_at?: string;
