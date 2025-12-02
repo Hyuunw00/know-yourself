@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { DailyLogModal } from '@/components/DailyLogModal';
 import { LogHistoryScreen } from '@/screens/LogHistoryScreen';
+import { NotificationHistoryScreen } from '@/screens/NotificationHistoryScreen';
 import { ActivityGrass } from '@/components/ActivityGrass';
 import { useDailyLogStore } from '@/stores/dailyLogStore';
 import { useAuthStore } from '@/stores/authStore';
@@ -20,6 +21,7 @@ import { DailyLog, UserProfile, AIQuestion } from '@/types/database';
 import { formatDateShort } from '@/utils/date';
 import { getTodayQuestion } from '@/services/aiQuestion';
 import { AIQuestionModal } from '@/components/AIQuestionModal';
+import { getUnreadCount } from '@/services/notification';
 
 interface Props {
   onGoProfile?: () => void;
@@ -29,9 +31,11 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedLog, setSelectedLog] = useState<DailyLog | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [aiQuestion, setAiQuestion] = useState<AIQuestion | null>(null);
   const [showQuestionModal, setShowQuestionModal] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const {
     logs,
     totalCount,
@@ -44,13 +48,20 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
   const { user, logout } = useAuthStore();
   const { checkAndTriggerAnalysis } = useAnalysisStore();
 
-  // 화면 로드 시 데이터 불러오기 및 마지막 앱 접근 시간 업데이트
+  const loadUnreadCount = async () => {
+    if (!user?.id) return;
+    const count = await getUnreadCount(user.id);
+    setUnreadCount(count);
+  };
+
   useEffect(() => {
     if (user?.id) {
       fetchLogs(user.id);
       getProfile(user.id).then(setProfile);
       updateLastAppOpenAt(user.id);
+      loadUnreadCount();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchLogs, user?.id]);
 
   // AI 질문 체크 로직
@@ -58,10 +69,8 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
     const showPendingQuestion = async () => {
       if (!user?.id) return;
 
-      // 오늘의 미답변 질문 확인
       const question = await getTodayQuestion(user.id);
 
-      // 질문이 있으면 모달 표시
       if (question && !question.answer_text) {
         setAiQuestion(question);
         setShowQuestionModal(true);
@@ -84,7 +93,7 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
       Alert.alert(
         '기록 제한',
         '하루에 최대 3개까지 기록할 수 있어요.\n내일 다시 작성해주세요!',
-        [{ text: '확인' }]
+        [{ text: '확인' }],
       );
       return;
     }
@@ -153,6 +162,17 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
     return <LogHistoryScreen onBack={() => setShowHistory(false)} />;
   }
 
+  if (showNotifications) {
+    return (
+      <NotificationHistoryScreen
+        onBack={() => {
+          setShowNotifications(false);
+          loadUnreadCount();
+        }}
+      />
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
@@ -161,6 +181,20 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
           <View style={styles.headerTop}>
             <Text style={styles.title}>나의 기록</Text>
             <View style={styles.headerButtons}>
+              {/* 알림 아이콘 */}
+              <TouchableOpacity
+                onPress={() => setShowNotifications(true)}
+                style={styles.notificationButton}
+              >
+                <Text style={styles.notificationIcon}>🔔</Text>
+                {unreadCount > 0 && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
               {onGoProfile && (
                 <TouchableOpacity
                   onPress={onGoProfile}
@@ -270,6 +304,31 @@ const styles = StyleSheet.create({
   headerButtons: {
     flexDirection: 'row',
     gap: 12,
+    alignItems: 'center',
+  },
+  notificationButton: {
+    position: 'relative',
+    paddingVertical: 4,
+  },
+  notificationIcon: {
+    fontSize: 20,
+  },
+  badge: {
+    position: 'absolute',
+    top: 0,
+    right: -6,
+    backgroundColor: '#FF3B30',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   headerButton: {
     paddingVertical: 4,

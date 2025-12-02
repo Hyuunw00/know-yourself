@@ -95,3 +95,23 @@ export interface PushToken {
   created_at: string;
   updated_at: string;
 }
+
+// 알림 타입
+export type NotificationType =
+  | 'ai_question'
+  | 'analysis_complete'
+  | 'reminder'
+  | 'system';
+
+// 알림
+export interface Notification {
+  id: string;
+  user_id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  data?: Record<string, unknown>; // question_id, analysis_id 등
+  read: boolean;
+  created_at: string;
+  sent_at?: string;
+}
