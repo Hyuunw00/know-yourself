@@ -7,8 +7,10 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAuthStore } from '@/stores/authStore';
 import { useAnalysisStore, isProfileComplete } from '@/stores/analysisStore';
 import { useDailyLogStore } from '@/stores/dailyLogStore';
@@ -34,6 +36,7 @@ export const ProfileEditScreen = ({ onBack }: Props) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<ProfileTabKey>('basic');
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const fetchProfile = useCallback(async () => {
     if (!user?.id) return;
@@ -231,13 +234,37 @@ export const ProfileEditScreen = ({ onBack }: Props) => {
 
       <View style={styles.section}>
         <Text style={styles.label}>생년월일</Text>
-        <TextInput
-          style={styles.input}
-          value={profile.birthdate || ''}
-          onChangeText={text => setProfile({ ...profile, birthdate: text })}
-          placeholder="예: 1990-01-15"
-          placeholderTextColor="#999"
-        />
+        <TouchableOpacity
+          style={styles.datePickerButton}
+          onPress={() => setShowDatePicker(true)}
+        >
+          <Text style={profile.birthdate ? styles.dateText : styles.datePlaceholder}>
+            {profile.birthdate || '생년월일 선택'}
+          </Text>
+        </TouchableOpacity>
+        {showDatePicker && (
+          <DateTimePicker
+            value={profile.birthdate ? new Date(profile.birthdate) : new Date(1990, 0, 1)}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={(event, selectedDate) => {
+              if (Platform.OS === 'android') {
+                setShowDatePicker(false);
+              }
+              if (event.type === 'set' && selectedDate) {
+                const formattedDate = selectedDate.toISOString().split('T')[0];
+                setProfile({ ...profile, birthdate: formattedDate });
+                if (Platform.OS === 'ios') {
+                  setShowDatePicker(false);
+                }
+              } else if (event.type === 'dismissed') {
+                setShowDatePicker(false);
+              }
+            }}
+            maximumDate={new Date()}
+            minimumDate={new Date(1900, 0, 1)}
+          />
+        )}
       </View>
 
       <View style={styles.section}>
@@ -590,6 +617,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
     marginBottom: 8,
+  },
+  datePickerButton: {
+    backgroundColor: '#fff',
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  dateText: {
+    fontSize: 16,
+    color: '#1a1a1a',
+  },
+  datePlaceholder: {
+    fontSize: 16,
+    color: '#999',
   },
   input: {
     backgroundColor: '#fff',
