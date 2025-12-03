@@ -49,7 +49,7 @@ export const getDailyLogs = async (
     query = query.lte('date', options.endDate);
   }
 
-  query = query.order('updated_at', { ascending: false });
+  query = query.order('date', { ascending: false }).order('updated_at', { ascending: false });
 
   if (options?.limit && options?.offset !== undefined) {
     query = query.range(options.offset, options.offset + options.limit - 1);

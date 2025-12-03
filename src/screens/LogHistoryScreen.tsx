@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { DailyLogModal } from '@/components/DailyLogModal';
 import { useAuthStore } from '@/stores/authStore';
+import { useLogHistoryFilterStore } from '@/stores/logHistoryFilterStore';
 import { DailyLog } from '@/types/database';
 import { formatDateLong, formatTime } from '@/utils/date';
 import {
@@ -25,7 +26,7 @@ interface Props {
   onBack: () => void;
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 export const LogHistoryScreen = ({ onBack }: Props) => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -37,9 +38,24 @@ export const LogHistoryScreen = ({ onBack }: Props) => {
   const [refreshing, setRefreshing] = useState(false);
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
-  const [startDate, setStartDate] = useState<string | undefined>();
-  const [endDate, setEndDate] = useState<string | undefined>();
+
   const { user } = useAuthStore();
+  const {
+    startDate,
+    endDate,
+    setStartDate,
+    setEndDate,
+    clearFilters,
+    initializeDefaultDates,
+  } = useLogHistoryFilterStore();
+
+  // 최초 진입 시 기본 날짜 설정
+  useEffect(() => {
+    if (!startDate && !endDate) {
+      initializeDefaultDates();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const loadLogs = useCallback(
     async (offset: number = 0) => {
@@ -113,11 +129,6 @@ export const LogHistoryScreen = ({ onBack }: Props) => {
   const handleCloseModal = () => {
     setSelectedLog(null);
     setModalVisible(false);
-  };
-
-  const clearFilters = () => {
-    setStartDate(undefined);
-    setEndDate(undefined);
   };
 
   const renderLogItem = ({ item }: { item: DailyLog }) => (

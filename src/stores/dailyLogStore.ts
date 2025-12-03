@@ -28,7 +28,7 @@ export const useDailyLogStore = create<DailyLogState>((set) => ({
     set({ isLoading: true, error: null });
 
     const [logs, count] = await Promise.all([
-      getDailyLogs(userId, { limit: 10 }),
+      getDailyLogs(userId, { limit: 5 }),
       getDailyLogCount(userId),
     ]);
 
