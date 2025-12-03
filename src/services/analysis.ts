@@ -22,6 +22,7 @@ export const requestAnalysis = async (
   const { data, error } = await supabase.functions.invoke('analyze-log', {
     body: {
       profile: {
+        user_id: profile.user_id, // userId 추가
         name: profile.name,
         birthdate: profile.birthdate,
         gender: profile.gender,
@@ -90,6 +91,8 @@ export const saveAnalysis = async (
     console.error('분석 결과 저장 실패:', error);
     return null;
   }
+
+  // 알림은 analyze-log Edge Function에서 send-notification을 호출하여 전송됨
 
   return data;
 };

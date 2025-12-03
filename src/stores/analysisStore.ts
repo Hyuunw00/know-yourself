@@ -96,8 +96,11 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
       );
 
       if (savedAnalysis) {
+        // 최신 분석 다시 불러오기 (DB에서 created_at 최신순으로)
+        const latestFromDB = await getLatestAnalysis(userId);
+
         set({
-          latestAnalysis: savedAnalysis,
+          latestAnalysis: latestFromDB || savedAnalysis,
           allAnalyses: [savedAnalysis, ...get().allAnalyses],
           isAnalyzing: false,
         });

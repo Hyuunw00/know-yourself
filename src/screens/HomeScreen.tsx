@@ -36,6 +36,7 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
   const [aiQuestion, setAiQuestion] = useState<AIQuestion | null>(null);
   const [showQuestionModal, setShowQuestionModal] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [yearLogs, setYearLogs] = useState<DailyLog[]>([]); // 잔디 UI용 연도별 전체 로그
   const {
     logs,
     totalCount,
@@ -46,12 +47,25 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
     deleteLog,
   } = useDailyLogStore();
   const { user, logout } = useAuthStore();
-  const { checkAndTriggerAnalysis } = useAnalysisStore();
+  const { checkAndTriggerAnalysis, fetchLatestAnalysis } = useAnalysisStore();
 
   const loadUnreadCount = async () => {
     if (!user?.id) return;
     const count = await getUnreadCount(user.id);
     setUnreadCount(count);
+  };
+
+  // 잔디 UI용 해당 연도의 모든 로그 불러오기
+  const loadYearLogs = async () => {
+    if (!user?.id) return;
+
+    const currentYear = new Date().getFullYear();
+    const startDate = `${currentYear}-01-01`;
+    const endDate = `${currentYear}-12-31`;
+
+    const { getDailyLogs } = await import('@/services/dailyLog');
+    const allYearLogs = await getDailyLogs(user.id, { startDate, endDate });
+    setYearLogs(allYearLogs);
   };
 
   useEffect(() => {
@@ -60,6 +74,8 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
       getProfile(user.id).then(setProfile);
       updateLastAppOpenAt(user.id);
       loadUnreadCount();
+      loadYearLogs(); // 잔디 UI용 연도별 로그 로드
+      fetchLatestAnalysis(user.id); // 최신 분석 불러오기 (analysis_number 증가를 위해)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchLogs, user?.id]);
@@ -99,10 +115,14 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
     }
 
     const success = await addLog(user.id, text);
+
     if (success) {
       setModalVisible(false);
+      loadYearLogs(); // 잔디 UI 업데이트
+
       if (profile) {
         const newTotalCount = totalCount + 1;
+
         // ANALYSIS_INTERVAL의 배수일 때 백그라운드 분석 트리거
         if (
           newTotalCount >= ANALYSIS_INTERVAL &&
@@ -214,7 +234,7 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
         {/* 잔디 UI */}
         <View style={styles.activitySection}>
           <Text style={styles.sectionTitle}>기록 현황</Text>
-          <ActivityGrass logs={logs} />
+          <ActivityGrass logs={yearLogs} />
         </View>
 
         {/* 오늘 기록하기 버튼 */}
