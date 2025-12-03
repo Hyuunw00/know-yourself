@@ -23,7 +23,7 @@ export const useDailyLogStore = create<DailyLogState>((set) => ({
   isLoading: false,
   error: null,
 
-  // 일기 목록 불러오기
+  // 기록 목록 불러오기
   fetchLogs: async (userId: string) => {
     set({ isLoading: true, error: null });
 
@@ -42,7 +42,7 @@ export const useDailyLogStore = create<DailyLogState>((set) => ({
     return count;
   },
 
-  // 일기 추가
+  // 기록 추가
   addLog: async (userId: string, text: string) => {
     set({ isLoading: true, error: null });
 
@@ -61,7 +61,7 @@ export const useDailyLogStore = create<DailyLogState>((set) => ({
     return false;
   },
 
-  // 일기 수정
+  // 기록 수정
   updateLog: async (logId: string, text: string) => {
     const updatedLog = await updateDailyLog(logId, text);
 
@@ -75,7 +75,7 @@ export const useDailyLogStore = create<DailyLogState>((set) => ({
     return false;
   },
 
-  // 일기 삭제
+  // 기록 삭제
   deleteLog: async (logId: string) => {
     const success = await deleteDailyLog(logId);
 

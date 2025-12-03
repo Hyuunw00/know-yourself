@@ -255,7 +255,7 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
         </View>
       </ScrollView>
 
-      {/* 일기 작성/수정 모달 */}
+      {/* 기록 작성/수정 모달 */}
       <DailyLogModal
         visible={modalVisible}
         onClose={handleCloseModal}

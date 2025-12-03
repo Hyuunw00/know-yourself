@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 import { DailyLog } from '@/types';
 
-// 일기 저장
+// 기록 저장
 export const saveDailyLog = async (
   userId: string,
   text: string,
@@ -20,14 +20,14 @@ export const saveDailyLog = async (
     .single();
 
   if (error) {
-    console.error('일기 저장 실패:', error);
+    console.error('기록 저장 실패:', error);
     return null;
   }
 
   return data;
 };
 
-// 일기 불러오기
+// 기록 불러오기
 export const getDailyLogs = async (
   userId: string,
   options?: {
@@ -60,14 +60,14 @@ export const getDailyLogs = async (
   const { data, error } = await query;
 
   if (error) {
-    console.error('일기 불러오기 실패:', error);
+    console.error('기록 불러오기 실패:', error);
     return [];
   }
 
   return data || [];
 };
 
-// 일기 수정
+// 기록 수정
 export const updateDailyLog = async (logId: string, text: string): Promise<DailyLog | null> => {
   const { data, error } = await supabase
     .from('daily_logs')
@@ -77,14 +77,14 @@ export const updateDailyLog = async (logId: string, text: string): Promise<Daily
     .single();
 
   if (error) {
-    console.error('일기 수정 실패:', error);
+    console.error('기록 수정 실패:', error);
     return null;
   }
 
   return data;
 };
 
-// 일기 삭제
+// 기록 삭제
 export const deleteDailyLog = async (logId: string): Promise<boolean> => {
   const { error } = await supabase
     .from('daily_logs')
@@ -92,14 +92,14 @@ export const deleteDailyLog = async (logId: string): Promise<boolean> => {
     .eq('id', logId);
 
   if (error) {
-    console.error('일기 삭제 실패:', error);
+    console.error('기록 삭제 실패:', error);
     return false;
   }
 
   return true;
 };
 
-// 전체 일기 개수 조회
+// 전체 기록 개수 조회
 export const getDailyLogCount = async (userId: string): Promise<number> => {
   const { count, error } = await supabase
     .from('daily_logs')
@@ -107,7 +107,7 @@ export const getDailyLogCount = async (userId: string): Promise<number> => {
     .eq('user_id', userId);
 
   if (error) {
-    console.error('일기 개수 조회 실패:', error);
+    console.error('기록 개수 조회 실패:', error);
     return 0;
   }
 
