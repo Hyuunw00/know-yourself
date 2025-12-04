@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 import { AIQuestion, UserProfile, DailyLog } from '@/types';
 
-// 미답변 질문 중 가장 최근 것 조회
+// 미답변 질문 중 가장 최근 것 조회 (스킵된 질문 제외)
 export const getTodayQuestion = async (
   userId: string
 ): Promise<AIQuestion | null> => {
@@ -10,6 +10,7 @@ export const getTodayQuestion = async (
     .select('*')
     .eq('user_id', userId)
     .is('answer_text', null)
+    .or('skipped.is.null,skipped.eq.false')
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -99,6 +100,24 @@ export const deleteOldUnansweredQuestions = async (
   }
 };
 
+// 특정 질문 조회 (ID로)
+export const getQuestionById = async (
+  questionId: string
+): Promise<AIQuestion | null> => {
+  const { data, error } = await supabase
+    .from('ai_questions')
+    .select('*')
+    .eq('id', questionId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('질문 조회 실패:', error);
+    return null;
+  }
+
+  return data;
+};
+
 // 답변한 모든 질문 조회 (분석에 사용)
 export const getAllAnsweredQuestions = async (
   userId: string
@@ -116,4 +135,19 @@ export const getAllAnsweredQuestions = async (
   }
 
   return data || [];
+};
+
+// 질문 스킵 (답변 안하기 시)
+export const skipQuestion = async (questionId: string): Promise<boolean> => {
+  const { error } = await supabase
+    .from('ai_questions')
+    .update({ skipped: true })
+    .eq('id', questionId);
+
+  if (error) {
+    console.error('질문 스킵 실패:', error);
+    return false;
+  }
+
+  return true;
 };

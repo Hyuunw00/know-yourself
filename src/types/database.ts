@@ -85,6 +85,7 @@ export interface AIQuestion {
   answer_text?: string;
   context?: Record<string, unknown>;
   answered_at?: string;
+  skipped?: boolean; // 답변 안하기로 건너뛴 질문
   created_at: string;
 }
 

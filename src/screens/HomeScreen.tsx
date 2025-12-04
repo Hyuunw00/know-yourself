@@ -16,11 +16,10 @@ import { ActivityGrass } from '@/components/ActivityGrass';
 import { useDailyLogStore } from '@/stores/dailyLogStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useAnalysisStore, ANALYSIS_INTERVAL } from '@/stores/analysisStore';
+import { useNotificationStore } from '@/stores/notificationStore';
 import { getProfile, updateLastAppOpenAt } from '@/services/profile';
-import { DailyLog, UserProfile, AIQuestion } from '@/types/database';
+import { DailyLog, UserProfile, Notification } from '@/types/database';
 import { formatDateShort } from '@/utils/date';
-import { getTodayQuestion } from '@/services/aiQuestion';
-import { AIQuestionModal } from '@/components/AIQuestionModal';
 import { getUnreadCount } from '@/services/notification';
 
 interface Props {
@@ -33,8 +32,6 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
   const [showHistory, setShowHistory] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [aiQuestion, setAiQuestion] = useState<AIQuestion | null>(null);
-  const [showQuestionModal, setShowQuestionModal] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [yearLogs, setYearLogs] = useState<DailyLog[]>([]); // 잔디 UI용 연도별 전체 로그
   const {
@@ -48,6 +45,7 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
   } = useDailyLogStore();
   const { user, logout } = useAuthStore();
   const { checkAndTriggerAnalysis, fetchLatestAnalysis } = useAnalysisStore();
+  const { setPendingNotification } = useNotificationStore();
 
   const loadUnreadCount = async () => {
     if (!user?.id) return;
@@ -80,23 +78,7 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchLogs, user?.id]);
 
-  // AI 질문 체크 로직
-  useEffect(() => {
-    const showPendingQuestion = async () => {
-      if (!user?.id) return;
-
-      const question = await getTodayQuestion(user.id);
-
-      if (question && !question.answer_text) {
-        setAiQuestion(question);
-        setShowQuestionModal(true);
-      }
-    };
-
-    if (user?.id && !isLoading) {
-      showPendingQuestion();
-    }
-  }, [user?.id, isLoading]);
+  // AI 질문 모달 로직은 RootNavigator로 이동 (전역 처리)
 
   const handleSaveLog = async (text: string) => {
     if (!user?.id) return;
@@ -156,23 +138,6 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
     setModalVisible(false);
   };
 
-  const handleAnswerQuestion = async (answer: string) => {
-    if (!aiQuestion) return;
-
-    const { answerQuestion } = await import('@/services/aiQuestion');
-    const success = await answerQuestion(aiQuestion.id, answer);
-
-    if (success) {
-      setShowQuestionModal(false);
-      setAiQuestion(null);
-    }
-  };
-
-  const handleSkipQuestion = () => {
-    setShowQuestionModal(false);
-    setAiQuestion(null);
-  };
-
   // 텍스트 미리보기 (30자 제한)
   const getPreview = (text: string) => {
     return text.length > 30 ? text.slice(0, 30) + '...' : text;
@@ -182,6 +147,34 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
     return <LogHistoryScreen onBack={() => setShowHistory(false)} />;
   }
 
+  const handleNotificationClick = async (notification: Notification) => {
+    setShowNotifications(false);
+
+    // 알림 타입별 분기 처리
+    switch (notification.type) {
+      case 'ai_question':
+        // AI 질문 알림 → RootNavigator에서 처리하도록 pendingNotification 설정
+        const questionId = (notification.data?.questionId || notification.data?.question_id) as string;
+
+        setPendingNotification({
+          type: notification.type,
+          questionId: questionId,
+          question_id: questionId,
+        });
+        break;
+
+      case 'analysis_complete':
+        // AI 분석 완료 알림 → 프로필 페이지로 이동
+        if (onGoProfile) {
+          onGoProfile();
+        }
+        break;
+
+      default:
+        break;
+    }
+  };
+
   if (showNotifications) {
     return (
       <NotificationHistoryScreen
@@ -189,6 +182,7 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
           setShowNotifications(false);
           loadUnreadCount();
         }}
+        onNotificationClick={handleNotificationClick}
       />
     );
   }
@@ -285,15 +279,7 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
         log={selectedLog}
       />
 
-      {/* AI 질문 모달 */}
-      {aiQuestion && (
-        <AIQuestionModal
-          visible={showQuestionModal}
-          questionText={aiQuestion.question_text}
-          onAnswer={handleAnswerQuestion}
-          onSkip={handleSkipQuestion}
-        />
-      )}
+      {/* AI 질문 모달은 RootNavigator로 이동 (전역 처리) */}
     </SafeAreaView>
   );
 };

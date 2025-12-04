@@ -111,7 +111,7 @@ export const AIQuestionModal = ({
                 onPress={handleSkip}
                 disabled={isSubmitting}
               >
-                <Text style={styles.skipButtonText}>나중에 하기</Text>
+                <Text style={styles.skipButtonText}>답변 안하기</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
