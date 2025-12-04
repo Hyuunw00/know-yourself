@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,10 @@ import {
   ActivityIndicator,
   Alert,
   RefreshControl,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Swipeable } from 'react-native-gesture-handler';
 import { useAuthStore } from '@/stores/authStore';
 import { Notification } from '@/types';
 import {
@@ -22,11 +24,15 @@ import { formatDateMedium } from '@/utils/date';
 
 interface Props {
   onBack: () => void;
+  onNotificationClick?: (notification: Notification) => void;
 }
 
 const PAGE_SIZE = 20;
 
-export const NotificationHistoryScreen = ({ onBack }: Props) => {
+export const NotificationHistoryScreen = ({
+  onBack,
+  onNotificationClick,
+}: Props) => {
   const { user } = useAuthStore();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -73,14 +79,20 @@ export const NotificationHistoryScreen = ({ onBack }: Props) => {
     loadNotifications(0);
   };
 
-  const handleMarkAsRead = async (notification: Notification) => {
-    if (notification.read) return;
+  const handleNotificationClick = async (notification: Notification) => {
+    // 읽음 처리
+    if (!notification.read) {
+      const success = await markAsRead(notification.id);
+      if (success) {
+        setNotifications(prev =>
+          prev.map(n => (n.id === notification.id ? { ...n, read: true } : n)),
+        );
+      }
+    }
 
-    const success = await markAsRead(notification.id);
-    if (success) {
-      setNotifications(prev =>
-        prev.map(n => (n.id === notification.id ? { ...n, read: true } : n))
-      );
+    // 타입별 처리는 부모 컴포넌트에서
+    if (onNotificationClick) {
+      onNotificationClick(notification);
     }
   };
 
@@ -95,19 +107,10 @@ export const NotificationHistoryScreen = ({ onBack }: Props) => {
   };
 
   const handleDelete = async (notificationId: string) => {
-    Alert.alert('알림 삭제', '이 알림을 삭제하시겠습니까?', [
-      { text: '취소', style: 'cancel' },
-      {
-        text: '삭제',
-        style: 'destructive',
-        onPress: async () => {
-          const success = await deleteNotification(notificationId);
-          if (success) {
-            setNotifications(prev => prev.filter(n => n.id !== notificationId));
-          }
-        },
-      },
-    ]);
+    const success = await deleteNotification(notificationId);
+    if (success) {
+      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+    }
   };
 
   const getNotificationIcon = (type: string) => {
@@ -125,26 +128,64 @@ export const NotificationHistoryScreen = ({ onBack }: Props) => {
     }
   };
 
+  const renderRightActions = (
+    _progress: Animated.AnimatedInterpolation<number>,
+    dragX: Animated.AnimatedInterpolation<number>,
+    item: Notification,
+  ) => {
+    const trans = dragX.interpolate({
+      inputRange: [-80, 0],
+      outputRange: [0, 80],
+      extrapolate: 'clamp',
+    });
+
+    return (
+      <Animated.View
+        style={[
+          styles.deleteAction,
+          {
+            transform: [{ translateX: trans }],
+          },
+        ]}
+      >
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => handleDelete(item.id)}
+        >
+          <Text style={styles.deleteText}>삭제</Text>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
+
   const renderNotification = ({ item }: { item: Notification }) => (
-    <TouchableOpacity
-      style={[styles.notificationItem, !item.read && styles.unreadItem]}
-      onPress={() => handleMarkAsRead(item)}
-      onLongPress={() => handleDelete(item.id)}
+    <Swipeable
+      renderRightActions={(progress, dragX) =>
+        renderRightActions(progress, dragX, item)
+      }
+      overshootRight={false}
+      friction={2}
+      rightThreshold={40}
     >
-      <View style={styles.iconContainer}>
-        <Text style={styles.icon}>{getNotificationIcon(item.type)}</Text>
-        {!item.read && <View style={styles.unreadDot} />}
-      </View>
-      <View style={styles.content}>
-        <Text style={[styles.title, !item.read && styles.unreadText]}>
-          {item.title}
-        </Text>
-        <Text style={styles.body} numberOfLines={2}>
-          {item.body}
-        </Text>
-        <Text style={styles.time}>{formatDateMedium(item.created_at)}</Text>
-      </View>
-    </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.notificationItem, !item.read && styles.unreadItem]}
+        onPress={() => handleNotificationClick(item)}
+      >
+        <View style={styles.iconContainer}>
+          <Text style={styles.icon}>{getNotificationIcon(item.type)}</Text>
+          {!item.read && <View style={styles.unreadDot} />}
+        </View>
+        <View style={styles.content}>
+          <Text style={[styles.title, !item.read && styles.unreadText]}>
+            {item.title}
+          </Text>
+          <Text style={styles.body} numberOfLines={2}>
+            {item.body}
+          </Text>
+          <Text style={styles.time}>{formatDateMedium(item.created_at)}</Text>
+        </View>
+      </TouchableOpacity>
+    </Swipeable>
   );
 
   const renderFooter = () => {
@@ -307,5 +348,22 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: '#999',
+  },
+  deleteAction: {
+    backgroundColor: '#f44336',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    width: 80,
+  },
+  deleteButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    height: '100%',
+  },
+  deleteText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
 });
