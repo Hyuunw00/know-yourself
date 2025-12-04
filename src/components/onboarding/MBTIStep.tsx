@@ -30,8 +30,19 @@ export const MBTIStep = ({ mbti, onMBTIChange }: Props) => {
           </TouchableOpacity>
         ))}
       </View>
-      <TouchableOpacity onPress={() => onMBTIChange('모름')}>
-        <Text style={styles.skipText}>잘 모르겠어요</Text>
+      <TouchableOpacity
+        style={[
+          styles.skipButton,
+          mbti === '모름' && styles.skipButtonSelected,
+        ]}
+        onPress={() => onMBTIChange('모름')}>
+        <Text
+          style={[
+            styles.skipText,
+            mbti === '모름' && styles.skipTextSelected,
+          ]}>
+          {mbti === '모름' ? '✓ 잘 모르겠어요' : '잘 모르겠어요'}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -73,10 +84,26 @@ const styles = StyleSheet.create({
   mbtiTextSelected: {
     color: '#fff',
   },
-  skipText: {
+  skipButton: {
     marginTop: 16,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#f5f5f5',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  skipButtonSelected: {
+    backgroundColor: '#E8F5E9',
+    borderColor: '#4CAF50',
+  },
+  skipText: {
     textAlign: 'center',
     color: '#999',
     fontSize: 14,
+    fontWeight: '500',
+  },
+  skipTextSelected: {
+    color: '#4CAF50',
+    fontWeight: '600',
   },
 });

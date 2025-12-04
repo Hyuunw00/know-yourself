@@ -7,10 +7,9 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
-  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DatePicker from 'react-native-date-picker';
 import { DailyLogModal } from '@/components/DailyLogModal';
 import { useAuthStore } from '@/stores/authStore';
 import { useLogHistoryFilterStore } from '@/stores/logHistoryFilterStore';
@@ -218,50 +217,40 @@ export const LogHistoryScreen = ({ onBack }: Props) => {
         </View>
       </View>
 
-      {showStartPicker && (
-        <DateTimePicker
-          value={startDate ? new Date(startDate) : new Date()}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(event, date) => {
-            if (Platform.OS === 'android') {
-              setShowStartPicker(false);
-            }
-            if (event.type === 'set' && date) {
-              setStartDate(date.toISOString().split('T')[0]);
-              if (Platform.OS === 'ios') {
-                setShowStartPicker(false);
-              }
-            } else if (event.type === 'dismissed') {
-              setShowStartPicker(false);
-            }
-          }}
-          maximumDate={endDate ? new Date(endDate) : new Date()}
-        />
-      )}
+      <DatePicker
+        modal
+        open={showStartPicker}
+        date={startDate ? new Date(startDate) : new Date()}
+        mode="date"
+        maximumDate={endDate ? new Date(endDate) : new Date()}
+        onConfirm={(date) => {
+          setShowStartPicker(false);
+          setStartDate(date.toISOString().split('T')[0]);
+        }}
+        onCancel={() => setShowStartPicker(false)}
+        title="시작일 선택"
+        confirmText="확인"
+        cancelText="취소"
+        locale="ko"
+      />
 
-      {showEndPicker && (
-        <DateTimePicker
-          value={endDate ? new Date(endDate) : new Date()}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(event, date) => {
-            if (Platform.OS === 'android') {
-              setShowEndPicker(false);
-            }
-            if (event.type === 'set' && date) {
-              setEndDate(date.toISOString().split('T')[0]);
-              if (Platform.OS === 'ios') {
-                setShowEndPicker(false);
-              }
-            } else if (event.type === 'dismissed') {
-              setShowEndPicker(false);
-            }
-          }}
-          minimumDate={startDate ? new Date(startDate) : undefined}
-          maximumDate={new Date()}
-        />
-      )}
+      <DatePicker
+        modal
+        open={showEndPicker}
+        date={endDate ? new Date(endDate) : new Date()}
+        mode="date"
+        minimumDate={startDate ? new Date(startDate) : undefined}
+        maximumDate={new Date()}
+        onConfirm={(date) => {
+          setShowEndPicker(false);
+          setEndDate(date.toISOString().split('T')[0]);
+        }}
+        onCancel={() => setShowEndPicker(false)}
+        title="종료일 선택"
+        confirmText="확인"
+        cancelText="취소"
+        locale="ko"
+      />
 
       {isLoading ? (
         <ActivityIndicator color="#4CAF50" style={styles.loading} />

@@ -155,10 +155,14 @@ export const isProfileComplete = (profile: UserProfile): boolean => {
     profile.mbti &&
     profile.occupation &&
     profile.personality_keywords?.length &&
-    profile.strengths?.length &&
-    profile.weaknesses?.length &&
+    profile.strengths?.trim() &&
+    profile.weaknesses?.trim() &&
     profile.interests?.length &&
-    profile.values?.length &&
-    profile.goals?.length
+    profile.likes?.trim() &&
+    profile.dislikes?.trim() &&
+    profile.stress_relief?.trim() &&
+    profile.values?.trim() &&
+    profile.goals?.trim() &&
+    profile.bio?.trim()
   );
 };

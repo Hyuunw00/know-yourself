@@ -7,10 +7,9 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
-  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DatePicker from 'react-native-date-picker';
 import { useAuthStore } from '@/stores/authStore';
 import { useAnalysisStore, isProfileComplete } from '@/stores/analysisStore';
 import { useDailyLogStore } from '@/stores/dailyLogStore';
@@ -115,7 +114,7 @@ export const ProfileEditScreen = ({ onBack }: Props) => {
               runAnalysis(user.id, updatedProfile, totalCount);
             },
           },
-        ]
+        ],
       );
     } else {
       Alert.alert('완료', '프로필이 저장되었습니다.', [
@@ -238,33 +237,40 @@ export const ProfileEditScreen = ({ onBack }: Props) => {
           style={styles.datePickerButton}
           onPress={() => setShowDatePicker(true)}
         >
-          <Text style={profile.birthdate ? styles.dateText : styles.datePlaceholder}>
-            {profile.birthdate || '생년월일 선택'}
+          <Text
+            style={profile.birthdate ? styles.dateText : styles.datePlaceholder}
+          >
+            {profile.birthdate
+              ? new Date(profile.birthdate).toLocaleDateString('ko-KR', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })
+              : '생년월일 선택'}
           </Text>
         </TouchableOpacity>
-        {showDatePicker && (
-          <DateTimePicker
-            value={profile.birthdate ? new Date(profile.birthdate) : new Date(1990, 0, 1)}
-            mode="date"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={(event, selectedDate) => {
-              if (Platform.OS === 'android') {
-                setShowDatePicker(false);
-              }
-              if (event.type === 'set' && selectedDate) {
-                const formattedDate = selectedDate.toISOString().split('T')[0];
-                setProfile({ ...profile, birthdate: formattedDate });
-                if (Platform.OS === 'ios') {
-                  setShowDatePicker(false);
-                }
-              } else if (event.type === 'dismissed') {
-                setShowDatePicker(false);
-              }
-            }}
-            maximumDate={new Date()}
-            minimumDate={new Date(1900, 0, 1)}
-          />
-        )}
+        <DatePicker
+          modal
+          open={showDatePicker}
+          date={
+            profile.birthdate
+              ? new Date(profile.birthdate)
+              : new Date(1990, 0, 1)
+          }
+          mode="date"
+          maximumDate={new Date()}
+          minimumDate={new Date(1900, 0, 1)}
+          onConfirm={selectedDate => {
+            setShowDatePicker(false);
+            const formattedDate = selectedDate.toISOString().split('T')[0];
+            setProfile({ ...profile, birthdate: formattedDate });
+          }}
+          onCancel={() => setShowDatePicker(false)}
+          title="생년월일 선택"
+          confirmText="확인"
+          cancelText="취소"
+          locale="ko"
+        />
       </View>
 
       <View style={styles.section}>
@@ -344,9 +350,7 @@ export const ProfileEditScreen = ({ onBack }: Props) => {
         <TextInput
           style={styles.textArea}
           value={profile.strengths || ''}
-          onChangeText={text =>
-            setProfile({ ...profile, strengths: text })
-          }
+          onChangeText={text => setProfile({ ...profile, strengths: text })}
           placeholder="예: 책임감이 강해서 맡은 일은 끝까지 해내는 편이에요. 친구들이 저를 믿고 의지하는 이유인 것 같아요."
           placeholderTextColor="#999"
           multiline
@@ -359,9 +363,7 @@ export const ProfileEditScreen = ({ onBack }: Props) => {
         <TextInput
           style={styles.textArea}
           value={profile.weaknesses || ''}
-          onChangeText={text =>
-            setProfile({ ...profile, weaknesses: text })
-          }
+          onChangeText={text => setProfile({ ...profile, weaknesses: text })}
           placeholder="예: 결정을 내릴 때 우유부단해서 기회를 놓칠 때가 많아요. 빨리 판단하고 실행하는 능력을 키우고 싶어요."
           placeholderTextColor="#999"
           multiline
@@ -384,9 +386,7 @@ export const ProfileEditScreen = ({ onBack }: Props) => {
         <TextInput
           style={styles.textArea}
           value={profile.likes || ''}
-          onChangeText={text =>
-            setProfile({ ...profile, likes: text })
-          }
+          onChangeText={text => setProfile({ ...profile, likes: text })}
           placeholder="예: 커피 마시면서 책 읽는 시간, 비 오는 날 창밖 바라보기, 새벽의 고요한 분위기"
           placeholderTextColor="#999"
           multiline
@@ -399,9 +399,7 @@ export const ProfileEditScreen = ({ onBack }: Props) => {
         <TextInput
           style={styles.textArea}
           value={profile.dislikes || ''}
-          onChangeText={text =>
-            setProfile({ ...profile, dislikes: text })
-          }
+          onChangeText={text => setProfile({ ...profile, dislikes: text })}
           placeholder="예: 거짓말하는 사람, 무더운 여름 날씨, 복잡한 인파 속에 있을 때"
           placeholderTextColor="#999"
           multiline
@@ -414,9 +412,7 @@ export const ProfileEditScreen = ({ onBack }: Props) => {
         <TextInput
           style={styles.textArea}
           value={profile.stress_relief || ''}
-          onChangeText={text =>
-            setProfile({ ...profile, stress_relief: text })
-          }
+          onChangeText={text => setProfile({ ...profile, stress_relief: text })}
           placeholder="예: 운동하기, 음악 듣기, 친구들과 수다 떨기 등으로 스트레스를 풀어요."
           placeholderTextColor="#999"
           multiline
@@ -434,9 +430,7 @@ export const ProfileEditScreen = ({ onBack }: Props) => {
         <TextInput
           style={styles.textArea}
           value={profile.values || ''}
-          onChangeText={text =>
-            setProfile({ ...profile, values: text })
-          }
+          onChangeText={text => setProfile({ ...profile, values: text })}
           placeholder="예: 가족과의 시간, 자기계발, 일과 삶의 균형을 가장 중요하게 생각해요."
           placeholderTextColor="#999"
           multiline
@@ -449,9 +443,7 @@ export const ProfileEditScreen = ({ onBack }: Props) => {
         <TextInput
           style={styles.textArea}
           value={profile.goals || ''}
-          onChangeText={text =>
-            setProfile({ ...profile, goals: text })
-          }
+          onChangeText={text => setProfile({ ...profile, goals: text })}
           placeholder="예: 30대에 경제적 자유를 이루고, 하고 싶은 일을 선택해서 할 수 있는 삶을 살고 싶어요."
           placeholderTextColor="#999"
           multiline
