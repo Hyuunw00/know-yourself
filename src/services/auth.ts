@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { translateErrorMessage } from '@/utils/errorMessage';
 
 // 회원가입
 export const signUp = async (email: string, password: string) => {
@@ -8,7 +9,7 @@ export const signUp = async (email: string, password: string) => {
   });
 
   if (error) {
-    return { user: null, error: error.message };
+    return { user: null, error: translateErrorMessage(error.message) };
   }
 
   // 이미 가입된 이메일인 경우 체크
@@ -36,7 +37,7 @@ export const signIn = async (email: string, password: string) => {
 
   if (error) {
     console.error('로그인 실패:', error.message);
-    return { user: null, error: error.message };
+    return { user: null, error: translateErrorMessage(error.message) };
   }
 
   return { user: data.user, error: null };
@@ -48,7 +49,7 @@ export const signOut = async () => {
 
   if (error) {
     console.error('로그아웃 실패:', error.message);
-    return { error: error.message };
+    return { error: translateErrorMessage(error.message) };
   }
 
   return { error: null };

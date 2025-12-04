@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { UserProfile } from '@/types';
+import { translateErrorMessage } from '@/utils/errorMessage';
 
 // 프로필 조회
 export const getProfile = async (userId: string): Promise<UserProfile | null> => {
@@ -29,7 +30,7 @@ export const createProfile = async (
 
   if (error) {
     console.error('프로필 생성 실패:', error.message);
-    return { success: false, error: error.message };
+    return { success: false, error: translateErrorMessage(error.message) };
   }
 
   return { success: true };
@@ -47,7 +48,7 @@ export const updateProfile = async (
 
   if (error) {
     console.error('프로필 수정 실패:', error.message);
-    return { success: false, error: error.message };
+    return { success: false, error: translateErrorMessage(error.message) };
   }
 
   return { success: true };
@@ -88,7 +89,7 @@ export const toggleNotification = async (
 
   if (error) {
     console.error('알림 설정 변경 실패:', error.message);
-    return { success: false, error: error.message };
+    return { success: false, error: translateErrorMessage(error.message) };
   }
 
   return { success: true };
@@ -163,6 +164,6 @@ export const deleteAccount = async (
     return { success: true };
   } catch (error: any) {
     console.error('계정 삭제 실패:', error.message);
-    return { success: false, error: error.message };
+    return { success: false, error: translateErrorMessage(error.message) };
   }
 };
