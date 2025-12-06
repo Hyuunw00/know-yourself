@@ -200,7 +200,7 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
                 onPress={() => setShowNotifications(true)}
                 style={styles.notificationButton}
               >
-                <Text style={styles.notificationIcon}>🔔</Text>
+                <Text style={styles.notificationIcon}>📬</Text>
                 {unreadCount > 0 && (
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>
