@@ -338,7 +338,7 @@ export const ProfileScreen = ({ onBack }: Props) => {
               style={styles.settingItem}
               onPress={() =>
                 Linking.openURL(
-                  'https://hyuunw00.github.io/know-yourself/docs/privacy-policy.html',
+                  'https://hyuunw00.github.io/know-yourself/privacy-policy.html',
                 )
               }
             >

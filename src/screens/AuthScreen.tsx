@@ -127,7 +127,7 @@ export const AuthScreen = () => {
         <TouchableOpacity
           onPress={() =>
             Linking.openURL(
-              'https://hyuunw00.github.io/know-yourself/docs/privacy-policy.html',
+              'https://hyuunw00.github.io/know-yourself/privacy-policy.html',
             )
           }
           style={styles.privacyContainer}>
