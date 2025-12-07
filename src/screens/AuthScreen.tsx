@@ -19,6 +19,9 @@ export const AuthScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [waitingVerification, setWaitingVerification] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false); // 서비스 이용약관 동의
+  const [agreedToPrivacy, setAgreedToPrivacy] = useState(false); // 개인정보 처리방침 동의
+  const [isOver14, setIsOver14] = useState(false); // 만 14세 이상 확인
   const { login, signup, isLoading } = useAuthStore();
 
   const handleSubmit = async () => {
@@ -30,6 +33,22 @@ export const AuthScreen = () => {
     if (password.length < 6) {
       Alert.alert('알림', '비밀번호는 6자 이상이어야 합니다.');
       return;
+    }
+
+    // 회원가입 시 필수 동의 확인
+    if (!isLogin) {
+      if (!isOver14) {
+        Alert.alert('알림', '만 14세 이상만 가입할 수 있습니다.');
+        return;
+      }
+      if (!agreedToTerms) {
+        Alert.alert('알림', '서비스 이용약관에 동의해주세요.');
+        return;
+      }
+      if (!agreedToPrivacy) {
+        Alert.alert('알림', '개인정보 처리방침에 동의해주세요.');
+        return;
+      }
     }
 
     const { error } = isLogin
@@ -99,6 +118,65 @@ export const AuthScreen = () => {
             onChangeText={setPassword}
             secureTextEntry
           />
+
+          {/* 회원가입 시 필수 동의 항목 */}
+          {!isLogin && (
+            <View style={styles.agreementSection}>
+              {/* 만 14세 이상 확인 */}
+              <TouchableOpacity
+                style={styles.checkboxContainer}
+                onPress={() => setIsOver14(!isOver14)}>
+                <View style={styles.checkbox}>
+                  {isOver14 && <View style={styles.checkboxChecked} />}
+                </View>
+                <Text style={styles.checkboxLabel}>
+                  만 14세 이상입니다 (필수)
+                </Text>
+              </TouchableOpacity>
+
+              {/* 서비스 이용약관 동의 */}
+              <TouchableOpacity
+                style={styles.checkboxContainer}
+                onPress={() => setAgreedToTerms(!agreedToTerms)}>
+                <View style={styles.checkbox}>
+                  {agreedToTerms && <View style={styles.checkboxChecked} />}
+                </View>
+                <Text style={styles.checkboxLabel}>
+                  <Text
+                    style={styles.privacyLink}
+                    onPress={() =>
+                      Linking.openURL(
+                        'https://hyuunw00.github.io/know-yourself/terms-of-service.html',
+                      )
+                    }>
+                    서비스 이용약관
+                  </Text>
+                  에 동의합니다 (필수)
+                </Text>
+              </TouchableOpacity>
+
+              {/* 개인정보 처리방침 동의 */}
+              <TouchableOpacity
+                style={styles.checkboxContainer}
+                onPress={() => setAgreedToPrivacy(!agreedToPrivacy)}>
+                <View style={styles.checkbox}>
+                  {agreedToPrivacy && <View style={styles.checkboxChecked} />}
+                </View>
+                <Text style={styles.checkboxLabel}>
+                  <Text
+                    style={styles.privacyLink}
+                    onPress={() =>
+                      Linking.openURL(
+                        'https://hyuunw00.github.io/know-yourself/privacy-policy.html',
+                      )
+                    }>
+                    개인정보 처리방침
+                  </Text>
+                  에 동의합니다 (필수)
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           <TouchableOpacity
             style={styles.button}
@@ -174,6 +252,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
     borderColor: '#e0e0e0',
+  },
+  agreementSection: {
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: '#4CAF50',
+    marginRight: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxChecked: {
+    width: 12,
+    height: 12,
+    borderRadius: 2,
+    backgroundColor: '#4CAF50',
+  },
+  checkboxLabel: {
+    fontSize: 14,
+    color: '#333',
+    flex: 1,
+  },
+  privacyLink: {
+    color: '#4CAF50',
+    textDecorationLine: 'underline',
   },
   button: {
     backgroundColor: '#4CAF50',
