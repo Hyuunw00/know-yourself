@@ -105,7 +105,10 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
       const newTotalCount = totalCount + 1;
       console.log('[HomeScreen] 기록 추가 후 totalCount:', newTotalCount);
       console.log('[HomeScreen] profile 존재:', !!profile);
-      console.log('[HomeScreen] 10의 배수 체크:', newTotalCount % ANALYSIS_INTERVAL === 0);
+      console.log(
+        '[HomeScreen] 10의 배수 체크:',
+        newTotalCount % ANALYSIS_INTERVAL === 0,
+      );
 
       if (profile) {
         // ANALYSIS_INTERVAL의 배수일 때 백그라운드 분석 트리거
@@ -113,7 +116,10 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
           newTotalCount >= ANALYSIS_INTERVAL &&
           newTotalCount % ANALYSIS_INTERVAL === 0
         ) {
-          console.log('[HomeScreen] checkAndTriggerAnalysis 호출 - count:', newTotalCount);
+          console.log(
+            '[HomeScreen] checkAndTriggerAnalysis 호출 - count:',
+            newTotalCount,
+          );
           checkAndTriggerAnalysis(user.id, profile, newTotalCount);
         }
       }
@@ -158,7 +164,8 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
     switch (notification.type) {
       case 'ai_question':
         // AI 질문 알림 → RootNavigator에서 처리하도록 pendingNotification 설정
-        const questionId = (notification.data?.questionId || notification.data?.question_id) as string;
+        const questionId = (notification.data?.questionId ||
+          notification.data?.question_id) as string;
 
         setPendingNotification({
           type: notification.type,
