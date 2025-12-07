@@ -76,3 +76,19 @@ yarn-error.log
 
 # Environment variables
 .env
+
+# Google Services
+google-services.json.backup
+firebase-adminsdk-*.json
+
+# Play Store / App Store
+*.aab
+*.apk
+!app-release.aab
+*.mobileprovision
+*.p12
+*.cer
+
+# Sensitive credentials
+service-account-*.json
+play-store-credentials.json

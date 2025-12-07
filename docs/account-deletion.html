@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>계정 삭제 - Know Yourself</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .app-info {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .steps {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .step {
+            margin-bottom: 15px;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .step-number {
+            position: absolute;
+            left: 0;
+            top: 0;
+            background-color: #3498db;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .warning strong {
+            color: #856404;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .data-list {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .data-list ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .data-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .data-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .contact {
+            background-color: #e8f4f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+
+        .contact p {
+            margin-bottom: 10px;
+        }
+
+        .contact a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .contact a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            h2 {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>계정 삭제 안내</h1>
+        <div class="app-info">
+            <strong>앱 이름:</strong> Know Yourself<br>
+            <strong>개발자:</strong> Kim Hyunwoo
+        </div>
+
+        <h2>📱 계정 삭제 방법</h2>
+        <div class="steps">
+            <div class="step">
+                <span class="step-number">1</span>
+                <strong>Know Yourself</strong> 앱을 실행하세요
+            </div>
+            <div class="step">
+                <span class="step-number">2</span>
+                하단 탭에서 <strong>프로필</strong> 메뉴로 이동하세요
+            </div>
+            <div class="step">
+                <span class="step-number">3</span>
+                프로필 화면 하단의 <strong>"계정 삭제"</strong> 버튼을 클릭하세요
+            </div>
+            <div class="step">
+                <span class="step-number">4</span>
+                삭제 확인 팝업에서 <strong>"삭제"</strong> 버튼을 눌러 계정 삭제를 완료하세요
+            </div>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ 주의사항</strong>
+            계정을 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다. 신중하게 결정해 주세요.
+        </div>
+
+        <h2>🗑️ 삭제되는 데이터</h2>
+        <div class="data-list">
+            <p>계정 삭제 시 다음 데이터가 <strong>즉시 영구 삭제</strong>됩니다:</p>
+            <ul>
+                <li>사용자 프로필 정보 (이메일, 닉네임)</li>
+                <li>작성한 모든 일기 내용</li>
+                <li>AI 분석 결과 및 인사이트</li>
+                <li>감정 기록 및 통계 데이터</li>
+                <li>앱 내 모든 설정 정보</li>
+            </ul>
+        </div>
+
+        <h2>📊 데이터 보관 정책</h2>
+        <p>
+            계정 삭제 요청 시 <strong>모든 개인 데이터는 즉시 삭제</strong>되며, 별도로 보관되는 데이터는 없습니다.
+        </p>
+        <p style="margin-top: 10px;">
+            단, 법적 의무 또는 보안상의 이유로 다음 데이터는 최대 <strong>30일 동안</strong> 임시 보관될 수 있습니다:
+        </p>
+        <div class="data-list" style="margin-top: 10px;">
+            <ul>
+                <li>서비스 이용 로그 (IP 주소, 접속 시간 등)</li>
+                <li>결제 관련 거래 기록 (해당하는 경우)</li>
+            </ul>
+        </div>
+        <p style="margin-top: 10px;">
+            30일 경과 후 모든 데이터는 완전히 삭제됩니다.
+        </p>
+
+        <h2>❓ 문의하기</h2>
+        <div class="contact">
+            <p>계정 삭제와 관련하여 도움이 필요하신 경우 아래로 연락해 주세요:</p>
+            <p><strong>이메일:</strong> <a href="mailto:support@knowyourself.app">support@knowyourself.app</a></p>
+            <p style="margin-top: 15px; font-size: 14px; color: #7f8c8d;">
+                문의하신 내용은 영업일 기준 1-2일 이내에 답변드리겠습니다.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
