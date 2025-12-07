@@ -80,7 +80,8 @@ export const AuthScreen = () => {
             onPress={() => {
               setWaitingVerification(false);
               setIsLogin(true);
-            }}>
+            }}
+          >
             <Text style={styles.buttonText}>로그인하기</Text>
           </TouchableOpacity>
         </View>
@@ -92,7 +93,8 @@ export const AuthScreen = () => {
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.inner}>
+        style={styles.inner}
+      >
         {/* 헤더 */}
         <View style={styles.header}>
           <Text style={styles.title}>Know Yourself</Text>
@@ -125,7 +127,8 @@ export const AuthScreen = () => {
               {/* 만 14세 이상 확인 */}
               <TouchableOpacity
                 style={styles.checkboxContainer}
-                onPress={() => setIsOver14(!isOver14)}>
+                onPress={() => setIsOver14(!isOver14)}
+              >
                 <View style={styles.checkbox}>
                   {isOver14 && <View style={styles.checkboxChecked} />}
                 </View>
@@ -137,7 +140,8 @@ export const AuthScreen = () => {
               {/* 서비스 이용약관 동의 */}
               <TouchableOpacity
                 style={styles.checkboxContainer}
-                onPress={() => setAgreedToTerms(!agreedToTerms)}>
+                onPress={() => setAgreedToTerms(!agreedToTerms)}
+              >
                 <View style={styles.checkbox}>
                   {agreedToTerms && <View style={styles.checkboxChecked} />}
                 </View>
@@ -148,7 +152,8 @@ export const AuthScreen = () => {
                       Linking.openURL(
                         'https://hyuunw00.github.io/know-yourself/terms-of-service.html',
                       )
-                    }>
+                    }
+                  >
                     서비스 이용약관
                   </Text>
                   에 동의합니다 (필수)
@@ -158,7 +163,8 @@ export const AuthScreen = () => {
               {/* 개인정보 처리방침 동의 */}
               <TouchableOpacity
                 style={styles.checkboxContainer}
-                onPress={() => setAgreedToPrivacy(!agreedToPrivacy)}>
+                onPress={() => setAgreedToPrivacy(!agreedToPrivacy)}
+              >
                 <View style={styles.checkbox}>
                   {agreedToPrivacy && <View style={styles.checkboxChecked} />}
                 </View>
@@ -169,7 +175,8 @@ export const AuthScreen = () => {
                       Linking.openURL(
                         'https://hyuunw00.github.io/know-yourself/privacy-policy.html',
                       )
-                    }>
+                    }
+                  >
                     개인정보 처리방침
                   </Text>
                   에 동의합니다 (필수)
@@ -181,7 +188,8 @@ export const AuthScreen = () => {
           <TouchableOpacity
             style={styles.button}
             onPress={handleSubmit}
-            disabled={isLoading}>
+            disabled={isLoading}
+          >
             {isLoading ? (
               <ActivityIndicator color="#fff" />
             ) : (
@@ -199,17 +207,6 @@ export const AuthScreen = () => {
               ? '계정이 없으신가요? 회원가입'
               : '이미 계정이 있으신가요? 로그인'}
           </Text>
-        </TouchableOpacity>
-
-        {/* 개인정보 처리방침 링크 */}
-        <TouchableOpacity
-          onPress={() =>
-            Linking.openURL(
-              'https://hyuunw00.github.io/know-yourself/privacy-policy.html',
-            )
-          }
-          style={styles.privacyContainer}>
-          <Text style={styles.privacyText}>개인정보 처리방침</Text>
         </TouchableOpacity>
       </KeyboardAvoidingView>
     </SafeAreaView>
