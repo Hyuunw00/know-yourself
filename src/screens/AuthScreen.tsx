@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores/authStore';
@@ -121,6 +122,17 @@ export const AuthScreen = () => {
               : '이미 계정이 있으신가요? 로그인'}
           </Text>
         </TouchableOpacity>
+
+        {/* 개인정보 처리방침 링크 */}
+        <TouchableOpacity
+          onPress={() =>
+            Linking.openURL(
+              'https://hyuunw00.github.io/know-yourself/docs/privacy-policy.html',
+            )
+          }
+          style={styles.privacyContainer}>
+          <Text style={styles.privacyText}>개인정보 처리방침</Text>
+        </TouchableOpacity>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -179,5 +191,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#4CAF50',
     fontSize: 14,
+  },
+  privacyContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  privacyText: {
+    fontSize: 12,
+    color: '#999',
+    textDecorationLine: 'underline',
   },
 });

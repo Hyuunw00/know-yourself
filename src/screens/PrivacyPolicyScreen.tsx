@@ -8,9 +8,8 @@ interface Props {
 }
 
 export const PrivacyPolicyScreen: React.FC<Props> = () => {
-  // GitHub Pages URL (저장소에 푸시 후 활성화 필요)
-  // GitHub Pages 활성화 전: raw.githubusercontent.com 사용
-  const privacyPolicyUrl = 'https://raw.githubusercontent.com/Hyuunw00/know-yourself/main/docs/privacy-policy.html';
+  // GitHub Pages URL - HTML이 제대로 렌더링되어 표시됨
+  const privacyPolicyUrl = 'https://hyuunw00.github.io/know-yourself/docs/privacy-policy.html';
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

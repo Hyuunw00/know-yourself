@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Switch,
   Alert,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores/authStore';
@@ -332,6 +333,27 @@ export const ProfileScreen = ({ onBack }: Props) => {
             {/* 구분선 */}
             <View style={styles.settingDivider} />
 
+            {/* 개인정보 처리방침 */}
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() =>
+                Linking.openURL(
+                  'https://hyuunw00.github.io/know-yourself/docs/privacy-policy.html',
+                )
+              }
+            >
+              <View style={styles.settingInfo}>
+                <Text style={styles.settingLabel}>개인정보 처리방침</Text>
+                <Text style={styles.settingDescription}>
+                  개인정보 수집 및 이용 안내
+                </Text>
+              </View>
+              <Text style={styles.settingArrow}>→</Text>
+            </TouchableOpacity>
+
+            {/* 구분선 */}
+            <View style={styles.settingDivider} />
+
             {/* 계정 삭제 */}
             <TouchableOpacity
               style={styles.settingItem}
@@ -624,6 +646,10 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#f0f0f0',
     marginHorizontal: 16,
+  },
+  settingArrow: {
+    fontSize: 18,
+    color: '#999',
   },
   dangerText: {
     color: '#ff4444',
