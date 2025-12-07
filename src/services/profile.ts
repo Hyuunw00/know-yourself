@@ -77,24 +77,6 @@ export const updateLastAppOpenAt = async (userId: string): Promise<void> => {
   }
 };
 
-// 알림 설정 토글
-export const toggleNotification = async (
-  userId: string,
-  enabled: boolean
-): Promise<{ success: boolean; error?: string }> => {
-  const { error } = await supabase
-    .from('user_profiles')
-    .update({ notification_enabled: enabled })
-    .eq('user_id', userId);
-
-  if (error) {
-    console.error('알림 설정 변경 실패:', error.message);
-    return { success: false, error: translateErrorMessage(error.message) };
-  }
-
-  return { success: true };
-};
-
 // 계정 삭제 (사용자 데이터 모두 삭제)
 export const deleteAccount = async (
   userId: string

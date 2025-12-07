@@ -6,14 +6,13 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
-  Switch,
   Alert,
   Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores/authStore';
 import { useAnalysisStore } from '@/stores/analysisStore';
-import { getProfile, toggleNotification, deleteAccount } from '@/services/profile';
+import { getProfile, deleteAccount } from '@/services/profile';
 import { UserProfile } from '@/types';
 import { ProfileEditScreen } from './ProfileEditScreen';
 
@@ -28,7 +27,6 @@ export const ProfileScreen = ({ onBack }: Props) => {
   const [profile, setProfile] = useState<Partial<UserProfile> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [notificationEnabled, setNotificationEnabled] = useState(true);
 
   const fetchProfile = useCallback(async () => {
     if (!user?.id) return;
@@ -36,7 +34,6 @@ export const ProfileScreen = ({ onBack }: Props) => {
     const data = await getProfile(user.id);
     if (data) {
       setProfile(data);
-      setNotificationEnabled(data.notification_enabled ?? true);
     }
     setIsLoading(false);
   }, [user?.id]);
@@ -48,16 +45,8 @@ export const ProfileScreen = ({ onBack }: Props) => {
     }
   }, [fetchProfile, fetchLatestAnalysis, user?.id]);
 
-  const handleToggleNotification = async (value: boolean) => {
-    if (!user?.id) return;
-
-    setNotificationEnabled(value);
-    const result = await toggleNotification(user.id, value);
-
-    if (!result.success) {
-      Alert.alert('오류', '알림 설정 변경에 실패했습니다');
-      setNotificationEnabled(!value);
-    }
+  const handleOpenNotificationSettings = () => {
+    Linking.openSettings();
   };
 
   const handleDeleteAccount = () => {
@@ -315,20 +304,18 @@ export const ProfileScreen = ({ onBack }: Props) => {
           <Text style={styles.sectionTitle}>⚙️ 설정</Text>
           <View style={styles.settingsCard}>
             {/* 알림 설정 */}
-            <View style={styles.settingItem}>
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={handleOpenNotificationSettings}
+            >
               <View style={styles.settingInfo}>
                 <Text style={styles.settingLabel}>푸시 알림</Text>
                 <Text style={styles.settingDescription}>
-                  AI 질문, 분석 완료 등의 알림을 받습니다
+                  시스템 설정에서 알림을 관리합니다
                 </Text>
               </View>
-              <Switch
-                value={notificationEnabled}
-                onValueChange={handleToggleNotification}
-                trackColor={{ false: '#d1d5db', true: '#86efac' }}
-                thumbColor={notificationEnabled ? '#4CAF50' : '#f3f4f6'}
-              />
-            </View>
+              <Text style={styles.settingArrow}>→</Text>
+            </TouchableOpacity>
 
             {/* 구분선 */}
             <View style={styles.settingDivider} />
