@@ -11,18 +11,24 @@ export interface AnalysisResult {
   insights: { title: string; content: string }[];
 }
 
-// AI 종합 분석 요청
+// AI 종합 분석 요청 (Edge Function에서 DB 저장까지 처리)
 export const requestAnalysis = async (
   profile: UserProfile,
   logs: DailyLog[],
   aiQuestions: any[],
+  logCount: number,
   previousAnalysis?: AIAnalysis | null,
   analysisNumber: number = 1
-): Promise<AnalysisResult | null> => {
+): Promise<AIAnalysis | null> => {
+  console.log('[requestAnalysis] 🚀 analyze-log Edge Function 호출 시작');
+  console.log('[requestAnalysis] analysisNumber:', analysisNumber);
+  console.log('[requestAnalysis] logCount:', logCount);
+  console.log('[requestAnalysis] logs 개수:', logs.length);
+
   const { data, error } = await supabase.functions.invoke('analyze-log', {
     body: {
       profile: {
-        user_id: profile.user_id, // userId 추가
+        user_id: profile.user_id,
         name: profile.name,
         birthdate: profile.birthdate,
         gender: profile.gender,
@@ -51,15 +57,17 @@ export const requestAnalysis = async (
           }
         : undefined,
       analysisNumber,
+      logCount,
     },
   });
 
   if (error) {
-    console.error('AI 분석 실패:', error);
+    console.error('[requestAnalysis] ❌ AI 분석 실패:', error);
     return null;
   }
 
-  return data as AnalysisResult;
+  console.log('[requestAnalysis] ✅ AI 분석 성공 (DB 저장 완료)');
+  return data as AIAnalysis;
 };
 
 // 분석 결과 저장

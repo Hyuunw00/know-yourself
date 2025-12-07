@@ -9,7 +9,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
-  Keyboard,
   Alert,
 } from 'react-native';
 import { DailyLog } from '@/types/database';
@@ -101,7 +100,7 @@ export const DailyLogModal: React.FC<DailyLogModalProps> = ({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <TouchableWithoutFeedback onPress={handleClose}>
           <View style={styles.overlay}>
             <View style={styles.modalContent}>
               {/* 헤더 */}
