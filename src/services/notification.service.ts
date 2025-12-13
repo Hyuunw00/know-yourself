@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from '@/database/supabase';
 import { Notification } from '@/types';
 
 /**
@@ -10,7 +10,7 @@ import { Notification } from '@/types';
 export const getNotifications = async (
   userId: string,
   limit: number = 20,
-  offset: number = 0
+  offset: number = 0,
 ): Promise<Notification[]> => {
   const { data, error } = await supabase
     .from('notifications')
@@ -88,7 +88,7 @@ export const markAllAsRead = async (userId: string): Promise<boolean> => {
  * @param notificationId 알림 ID
  */
 export const deleteNotification = async (
-  notificationId: string
+  notificationId: string,
 ): Promise<boolean> => {
   const { error } = await supabase
     .from('notifications')
@@ -108,7 +108,7 @@ export const deleteNotification = async (
  * @param userId 사용자 ID
  */
 export const deleteAllNotifications = async (
-  userId: string
+  userId: string,
 ): Promise<boolean> => {
   const { error } = await supabase
     .from('notifications')
@@ -132,7 +132,7 @@ export const deleteAllNotifications = async (
 export const getNotificationsByType = async (
   userId: string,
   type: string,
-  limit: number = 20
+  limit: number = 20,
 ): Promise<Notification[]> => {
   const { data, error } = await supabase
     .from('notifications')

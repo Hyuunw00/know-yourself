@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from '@/database/supabase';
 import { DailyLog } from '@/types';
 
 // 기록 저장

@@ -2,7 +2,7 @@ import messaging, {
   FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
 import { Platform, Alert, PermissionsAndroid } from 'react-native';
-import { supabase } from './supabase';
+import { supabase } from '@/database/supabase';
 
 /**
  * FCM 권한 요청 및 토큰 가져오기

@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from '@/database/supabase';
 import { UserProfile } from '@/types';
 import { translateErrorMessage } from '@/utils/errorMessage';
 

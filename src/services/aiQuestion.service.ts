@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from '@/database/supabase';
 import { AIQuestion, UserProfile, DailyLog } from '@/types';
 
 // 미답변 질문 중 가장 최근 것 조회 (스킵된 질문 제외)
