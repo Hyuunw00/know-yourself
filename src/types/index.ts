@@ -4,12 +4,22 @@ export * from './database';
 // Navigation types
 export type RootStackParamList = {
   Auth: undefined;
+  Main: undefined;
+};
+
+export type AuthStackParamList = {
+  Auth: undefined;
+};
+
+export type MainStackParamList = {
   Onboarding: undefined;
   Home: undefined;
   Profile: undefined;
   ProfileEdit: undefined;
   DailyLog: undefined;
   LogList: undefined;
+  LogHistory: undefined;
+  NotificationHistory: undefined;
   AIProfile: undefined;
   WeeklyReport: undefined;
 };

@@ -8,8 +8,8 @@ import {
   initializeFCM,
   setupForegroundMessageHandler,
   setupNotificationOpenedListener,
-} from '@/services/pushNotification';
-import { supabase } from '@/services/supabase';
+} from '@/services/pushNotification.service';
+import { updateLastAppOpenAt } from '@/services/profile';
 import { useNotificationStore } from '@/stores/notificationStore';
 
 function App() {
@@ -19,20 +19,10 @@ function App() {
   // FCM 초기화 및 앱 실행 시간 기록
   useEffect(() => {
     if (user?.id) {
-      // FCM 초기화
       initializeFCM(user.id);
       const unsubscribe = setupForegroundMessageHandler();
 
-      // 앱 실행 시간 업데이트
-      supabase
-        .from('user_profiles')
-        .update({ last_app_open_at: new Date().toISOString() })
-        .eq('id', user.id)
-        .then(({ error }) => {
-          if (error) {
-            console.error('last_app_open_at 업데이트 실패:', error);
-          }
-        });
+      updateLastAppOpenAt(user.id);
 
       return unsubscribe;
     }
