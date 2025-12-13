@@ -19,9 +19,10 @@ import {
   useAddDailyLog,
   useUpdateDailyLog,
   useDeleteDailyLog,
-} from '@/hooks/useDailyLogs';
+} from '@/queries/useDailyLogs';
 import { useAuthStore } from '@/stores/authStore';
-import { useAnalysisStore, ANALYSIS_INTERVAL } from '@/stores/analysisStore';
+import { useLatestAnalysis, useRunAnalysis } from '@/queries/useAnalysis';
+import { shouldTriggerAnalysis } from '@/utils/analysis';
 import { getProfile, updateLastAppOpenAt } from '@/services/profile';
 import { DailyLog, UserProfile } from '@/types/database';
 import { MainStackParamList } from '@/types';
@@ -38,9 +39,12 @@ export const HomeScreen = () => {
   const [unreadCount, setUnreadCount] = useState(0);
 
   const { user, logout } = useAuthStore();
-  const { checkAndTriggerAnalysis, fetchLatestAnalysis } = useAnalysisStore();
 
-  // React Query hooks
+  // React Query - Analysis
+  const { data: latestAnalysis } = useLatestAnalysis(user?.id);
+  const runAnalysisMutation = useRunAnalysis();
+
+  // React Query - DailyLogs
   const currentYear = new Date().getFullYear();
   const { data: logs = [], isLoading } = useRecentLogs(user?.id);
   const { data: yearLogs = [] } = useYearLogs(user?.id, currentYear);
@@ -60,7 +64,6 @@ export const HomeScreen = () => {
       getProfile(user.id).then(setProfile);
       updateLastAppOpenAt(user.id);
       loadUnreadCount();
-      fetchLatestAnalysis(user.id); // 최신 분석 불러오기 (analysis_number 증가를 위해)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
@@ -72,21 +75,21 @@ export const HomeScreen = () => {
       onSuccess: () => {
         setModalVisible(false);
 
+        // 분석 트리거 체크
         const newTotalCount = totalCount + 1;
-        console.log('[HomeScreen] 기록 추가 후 totalCount:', newTotalCount);
+        const lastAnalysisLogCount = latestAnalysis?.log_count || 0;
 
-        if (profile) {
-          // ANALYSIS_INTERVAL의 배수일 때 백그라운드 분석 트리거
-          if (
-            newTotalCount >= ANALYSIS_INTERVAL &&
-            newTotalCount % ANALYSIS_INTERVAL === 0
-          ) {
-            console.log(
-              '[HomeScreen] checkAndTriggerAnalysis 호출 - count:',
-              newTotalCount,
-            );
-            checkAndTriggerAnalysis(user.id, profile, newTotalCount);
-          }
+        if (
+          profile &&
+          shouldTriggerAnalysis(newTotalCount, lastAnalysisLogCount)
+        ) {
+          console.log('[HomeScreen] ✅ 조건 충족! runAnalysis 실행');
+          runAnalysisMutation.mutate({
+            userId: user.id,
+            profile,
+            logCount: newTotalCount,
+            latestAnalysis: latestAnalysis || null,
+          });
         }
       },
     });

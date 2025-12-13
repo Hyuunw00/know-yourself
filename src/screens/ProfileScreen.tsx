@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuthStore } from '@/stores/authStore';
-import { useAnalysisStore } from '@/stores/analysisStore';
+import { useLatestAnalysis, useRunAnalysis } from '@/queries/useAnalysis';
 import { getProfile, deleteAccount } from '@/services/profile';
 import { UserProfile, MainStackParamList } from '@/types';
 
@@ -22,8 +22,12 @@ type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 export const ProfileScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const { user, setUser } = useAuthStore();
-  const { latestAnalysis, isAnalyzing, fetchLatestAnalysis } =
-    useAnalysisStore();
+
+  // React Query - Analysis
+  const { data: latestAnalysis } = useLatestAnalysis(user?.id);
+  const runAnalysisMutation = useRunAnalysis();
+  const isAnalyzing = runAnalysisMutation.isPending;
+
   const [profile, setProfile] = useState<Partial<UserProfile> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -39,10 +43,7 @@ export const ProfileScreen = () => {
 
   useEffect(() => {
     fetchProfile();
-    if (user?.id) {
-      fetchLatestAnalysis(user.id);
-    }
-  }, [fetchProfile, fetchLatestAnalysis, user?.id]);
+  }, [fetchProfile]);
 
   const handleOpenNotificationSettings = () => {
     Linking.openSettings();

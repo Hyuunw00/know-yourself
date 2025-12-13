@@ -13,10 +13,11 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DatePicker from 'react-native-date-picker';
 import { useAuthStore } from '@/stores/authStore';
-import { useAnalysisStore, isProfileComplete } from '@/stores/analysisStore';
-import { useDailyLogCount } from '@/hooks/useDailyLogs';
+import { useLatestAnalysis, useRunAnalysis } from '@/queries/useAnalysis';
+import { useDailyLogCount } from '@/queries/useDailyLogs';
 import { getProfile, updateProfile } from '@/services/profile';
 import { MBTI_TYPES, GENDERS } from '@/constants/onboarding';
+import { isProfileComplete } from '@/utils/profile';
 import {
   PROFILE_TABS,
   PERSONALITY_KEYWORDS,
@@ -30,7 +31,8 @@ type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 export const ProfileEditScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const { user } = useAuthStore();
-  const { latestAnalysis, runAnalysis } = useAnalysisStore();
+  const { data: latestAnalysis } = useLatestAnalysis(user?.id);
+  const runAnalysisMutation = useRunAnalysis();
   const { data: totalCount = 0 } = useDailyLogCount(user?.id);
   const [profile, setProfile] = useState<Partial<UserProfile>>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -112,7 +114,12 @@ export const ProfileEditScreen = () => {
             onPress: () => {
               navigation.goBack();
               // 백그라운드로 분석 실행
-              runAnalysis(user.id, updatedProfile, totalCount);
+              runAnalysisMutation.mutate({
+                userId: user.id,
+                profile: updatedProfile,
+                logCount: totalCount,
+                latestAnalysis: latestAnalysis || null,
+              });
             },
           },
         ],

@@ -18,13 +18,8 @@ export const requestAnalysis = async (
   aiQuestions: any[],
   logCount: number,
   previousAnalysis?: AIAnalysis | null,
-  analysisNumber: number = 1
+  analysisNumber: number = 1,
 ): Promise<AIAnalysis | null> => {
-  console.log('[requestAnalysis] 🚀 analyze-log Edge Function 호출 시작');
-  console.log('[requestAnalysis] analysisNumber:', analysisNumber);
-  console.log('[requestAnalysis] logCount:', logCount);
-  console.log('[requestAnalysis] logs 개수:', logs.length);
-
   const { data, error } = await supabase.functions.invoke('analyze-log', {
     body: {
       profile: {
@@ -75,7 +70,7 @@ export const saveAnalysis = async (
   userId: string,
   logCount: number,
   analysisNumber: number,
-  result: AnalysisResult
+  result: AnalysisResult,
 ): Promise<AIAnalysis | null> => {
   const { data, error } = await supabase
     .from('ai_analyses')
@@ -107,7 +102,7 @@ export const saveAnalysis = async (
 
 // 가장 최근 분석 결과 조회
 export const getLatestAnalysis = async (
-  userId: string
+  userId: string,
 ): Promise<AIAnalysis | null> => {
   const { data, error } = await supabase
     .from('ai_analyses')
@@ -143,11 +138,3 @@ export const getAllAnalyses = async (userId: string): Promise<AIAnalysis[]> => {
   return data || [];
 };
 
-// 분석이 필요한지 체크 (10의 배수)
-export const shouldTriggerAnalysis = (
-  logCount: number,
-  lastAnalysisLogCount: number
-): boolean => {
-  // 10의 배수이고, 마지막 분석 이후 새 기록이 있는 경우
-  return logCount >= 10 && logCount % 10 === 0 && logCount > lastAnalysisLogCount;
-};
