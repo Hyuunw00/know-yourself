@@ -23,11 +23,11 @@ import {
 import { useAuthStore } from '@/stores/authStore';
 import { useLatestAnalysis, useRunAnalysis } from '@/queries/useAnalysis';
 import { shouldTriggerAnalysis } from '@/utils/analysis';
-import { getProfile, updateLastAppOpenAt } from '@/services/profile';
+import { getProfile, updateLastAppOpenAt } from '@/services/profile.service';
 import { DailyLog, UserProfile } from '@/types/database';
 import { MainStackParamList } from '@/types';
 import { formatDateShort } from '@/utils/date';
-import { getUnreadCount } from '@/services/notification';
+import { getUnreadCount } from '@/services/notification.service';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 

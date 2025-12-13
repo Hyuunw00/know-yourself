@@ -20,7 +20,7 @@ import {
   getDailyLogs,
   updateDailyLog,
   deleteDailyLog,
-} from '@/services/dailyLog';
+} from '@/services/dailyLog.service';
 
 const PAGE_SIZE = 10;
 
@@ -82,7 +82,7 @@ export const LogHistoryScreen = () => {
       setIsLoadingMore(false);
       setRefreshing(false);
     },
-    [user?.id, startDate, endDate]
+    [user?.id, startDate, endDate],
   );
 
   useEffect(() => {
@@ -221,7 +221,7 @@ export const LogHistoryScreen = () => {
         date={startDate ? new Date(startDate) : new Date()}
         mode="date"
         maximumDate={endDate ? new Date(endDate) : new Date()}
-        onConfirm={(date) => {
+        onConfirm={date => {
           setShowStartPicker(false);
           setStartDate(date.toISOString().split('T')[0]);
         }}
@@ -239,7 +239,7 @@ export const LogHistoryScreen = () => {
         mode="date"
         minimumDate={startDate ? new Date(startDate) : undefined}
         maximumDate={new Date()}
-        onConfirm={(date) => {
+        onConfirm={date => {
           setShowEndPicker(false);
           setEndDate(date.toISOString().split('T')[0]);
         }}

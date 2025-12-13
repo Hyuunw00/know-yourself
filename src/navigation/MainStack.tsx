@@ -10,7 +10,7 @@ import { LogHistoryScreen } from '@/screens/LogHistoryScreen';
 import { NotificationHistoryScreen } from '@/screens/NotificationHistoryScreen';
 import { useAuthStore } from '@/stores/authStore';
 import { useNotificationStore } from '@/stores/notificationStore';
-import { checkProfileExists } from '@/services/profile';
+import { checkProfileExists } from '@/services/profile.service';
 import { AIQuestionModal } from '@/components/AIQuestionModal';
 import { AIQuestion } from '@/types/database';
 import {

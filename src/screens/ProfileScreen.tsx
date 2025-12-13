@@ -14,7 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuthStore } from '@/stores/authStore';
 import { useLatestAnalysis, useRunAnalysis } from '@/queries/useAnalysis';
-import { getProfile, deleteAccount } from '@/services/profile';
+import { getProfile, deleteAccount } from '@/services/profile.service';
 import { UserProfile, MainStackParamList } from '@/types';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
@@ -76,7 +76,7 @@ export const ProfileScreen = () => {
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -118,7 +118,6 @@ export const ProfileScreen = () => {
     );
   }
 
-  
   const age = calculateAge(profile?.birthdate);
 
   return (
@@ -182,18 +181,21 @@ export const ProfileScreen = () => {
               )}
 
               {/* AI가 발견한 특징 */}
-              {latestAnalysis.keywords && latestAnalysis.keywords.length > 0 && (
-                <View style={styles.keywordsContainer}>
-                  <Text style={styles.subsectionTitle}>💡 AI가 발견한 나의 특징</Text>
-                  <View style={styles.keywords}>
-                    {latestAnalysis.keywords.map((keyword, index) => (
-                      <View key={index} style={styles.keywordTag}>
-                        <Text style={styles.keywordText}>#{keyword}</Text>
-                      </View>
-                    ))}
+              {latestAnalysis.keywords &&
+                latestAnalysis.keywords.length > 0 && (
+                  <View style={styles.keywordsContainer}>
+                    <Text style={styles.subsectionTitle}>
+                      💡 AI가 발견한 나의 특징
+                    </Text>
+                    <View style={styles.keywords}>
+                      {latestAnalysis.keywords.map((keyword, index) => (
+                        <View key={index} style={styles.keywordTag}>
+                          <Text style={styles.keywordText}>#{keyword}</Text>
+                        </View>
+                      ))}
+                    </View>
                   </View>
-                </View>
-              )}
+                )}
 
               {/* 강점 & 약점 */}
               <View style={styles.dualSection}>
@@ -249,17 +251,20 @@ export const ProfileScreen = () => {
               )}
 
               {/* 인사이트 */}
-              {latestAnalysis.insights && latestAnalysis.insights.length > 0 && (
-                <View style={styles.insightsContainer}>
-                  <Text style={styles.subsectionTitle}>🔮 성장 인사이트</Text>
-                  {latestAnalysis.insights.map((insight, index) => (
-                    <View key={index} style={styles.insightCard}>
-                      <Text style={styles.insightTitle}>{insight.title}</Text>
-                      <Text style={styles.insightContent}>{insight.content}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
+              {latestAnalysis.insights &&
+                latestAnalysis.insights.length > 0 && (
+                  <View style={styles.insightsContainer}>
+                    <Text style={styles.subsectionTitle}>🔮 성장 인사이트</Text>
+                    {latestAnalysis.insights.map((insight, index) => (
+                      <View key={index} style={styles.insightCard}>
+                        <Text style={styles.insightTitle}>{insight.title}</Text>
+                        <Text style={styles.insightContent}>
+                          {insight.content}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
 
               {/* 통계 정보 */}
               <View style={styles.statsContainer}>

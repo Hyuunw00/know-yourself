@@ -22,7 +22,7 @@ import {
   markAsRead,
   markAllAsRead,
   deleteNotification,
-} from '@/services/notification';
+} from '@/services/notification.service';
 import { formatDateMedium } from '@/utils/date';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;

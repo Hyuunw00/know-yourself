@@ -15,7 +15,7 @@ import DatePicker from 'react-native-date-picker';
 import { useAuthStore } from '@/stores/authStore';
 import { useLatestAnalysis, useRunAnalysis } from '@/queries/useAnalysis';
 import { useDailyLogCount } from '@/queries/useDailyLogs';
-import { getProfile, updateProfile } from '@/services/profile';
+import { getProfile, updateProfile } from '@/services/profile.service';
 import { MBTI_TYPES, GENDERS } from '@/constants/onboarding';
 import { isProfileComplete } from '@/utils/profile';
 import {

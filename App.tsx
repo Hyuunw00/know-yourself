@@ -10,7 +10,7 @@ import {
   setupForegroundMessageHandler,
   setupNotificationOpenedListener,
 } from '@/services/pushNotification.service';
-import { updateLastAppOpenAt } from '@/services/profile';
+import { updateLastAppOpenAt } from '@/services/profile.service';
 import { useNotificationStore } from '@/stores/notificationStore';
 
 const queryClient = new QueryClient();
