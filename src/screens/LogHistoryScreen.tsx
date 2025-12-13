@@ -9,6 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import DatePicker from 'react-native-date-picker';
 import { DailyLogModal } from '@/components/DailyLogModal';
 import { useAuthStore } from '@/stores/authStore';
@@ -21,13 +22,10 @@ import {
   deleteDailyLog,
 } from '@/services/dailyLog';
 
-interface Props {
-  onBack: () => void;
-}
-
 const PAGE_SIZE = 10;
 
-export const LogHistoryScreen = ({ onBack }: Props) => {
+export const LogHistoryScreen = () => {
+  const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedLog, setSelectedLog] = useState<DailyLog | null>(null);
   const [logs, setLogs] = useState<DailyLog[]>([]);
@@ -170,7 +168,7 @@ export const LogHistoryScreen = ({ onBack }: Props) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backButton}>← 뒤로</Text>
         </TouchableOpacity>
         <Text style={styles.title}>기록 히스토리</Text>

@@ -10,23 +10,22 @@ import {
   Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuthStore } from '@/stores/authStore';
 import { useAnalysisStore } from '@/stores/analysisStore';
 import { getProfile, deleteAccount } from '@/services/profile';
-import { UserProfile } from '@/types';
-import { ProfileEditScreen } from './ProfileEditScreen';
+import { UserProfile, MainStackParamList } from '@/types';
 
-interface Props {
-  onBack: () => void;
-}
+type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
-export const ProfileScreen = ({ onBack }: Props) => {
+export const ProfileScreen = () => {
+  const navigation = useNavigation<NavigationProp>();
   const { user, setUser } = useAuthStore();
   const { latestAnalysis, isAnalyzing, fetchLatestAnalysis } =
     useAnalysisStore();
   const [profile, setProfile] = useState<Partial<UserProfile> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
 
   const fetchProfile = useCallback(async () => {
     if (!user?.id) return;
@@ -108,14 +107,6 @@ export const ProfileScreen = ({ onBack }: Props) => {
     return age;
   };
 
-  const handleEditComplete = () => {
-    setIsEditing(false);
-    fetchProfile();
-    if (user?.id) {
-      fetchLatestAnalysis(user.id);
-    }
-  };
-
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -126,10 +117,7 @@ export const ProfileScreen = ({ onBack }: Props) => {
     );
   }
 
-  if (isEditing) {
-    return <ProfileEditScreen onBack={handleEditComplete} />;
-  }
-
+  
   const age = calculateAge(profile?.birthdate);
 
   return (
@@ -137,11 +125,11 @@ export const ProfileScreen = ({ onBack }: Props) => {
       <ScrollView style={styles.scrollView}>
         {/* 헤더 */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={onBack}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.backButton}>← 뒤로</Text>
           </TouchableOpacity>
           <Text style={styles.title}>내 프로필</Text>
-          <TouchableOpacity onPress={() => setIsEditing(true)}>
+          <TouchableOpacity onPress={() => navigation.navigate('ProfileEdit')}>
             <Text style={styles.editButton}>수정</Text>
           </TouchableOpacity>
         </View>

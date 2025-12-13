@@ -9,6 +9,8 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DatePicker from 'react-native-date-picker';
 import { useAuthStore } from '@/stores/authStore';
 import { useAnalysisStore, isProfileComplete } from '@/stores/analysisStore';
@@ -21,13 +23,12 @@ import {
   INTERESTS,
   ProfileTabKey,
 } from '@/constants/profile';
-import { UserProfile } from '@/types';
+import { UserProfile, MainStackParamList } from '@/types';
 
-interface Props {
-  onBack: () => void;
-}
+type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
-export const ProfileEditScreen = ({ onBack }: Props) => {
+export const ProfileEditScreen = () => {
+  const navigation = useNavigation<NavigationProp>();
   const { user } = useAuthStore();
   const { latestAnalysis, runAnalysis } = useAnalysisStore();
   const { totalCount } = useDailyLogStore();
@@ -105,11 +106,11 @@ export const ProfileEditScreen = ({ onBack }: Props) => {
         '프로필 완성!',
         'AI가 당신을 분석해드릴게요. 분석을 시작할까요?',
         [
-          { text: '나중에', onPress: onBack },
+          { text: '나중에', onPress: () => navigation.goBack() },
           {
             text: '분석 시작',
             onPress: () => {
-              onBack();
+              navigation.goBack();
               // 백그라운드로 분석 실행
               runAnalysis(user.id, updatedProfile, totalCount);
             },
@@ -118,7 +119,7 @@ export const ProfileEditScreen = ({ onBack }: Props) => {
       );
     } else {
       Alert.alert('완료', '프로필이 저장되었습니다.', [
-        { text: '확인', onPress: onBack },
+        { text: '확인', onPress: () => navigation.goBack() },
       ]);
     }
   };
@@ -494,7 +495,7 @@ export const ProfileEditScreen = ({ onBack }: Props) => {
     <SafeAreaView style={styles.container}>
       {/* 헤더 */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backButton}>← 뒤로</Text>
         </TouchableOpacity>
         <Text style={styles.title}>프로필 수정</Text>

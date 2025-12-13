@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { supabase } from '@/services/supabase';
 import { useAuthStore } from '@/stores/authStore';
 import {
@@ -18,12 +19,8 @@ import {
   CompleteStep,
 } from '@/components/onboarding';
 
-interface Props {
-  onComplete: () => void;
-  onGoProfile?: () => void;
-}
-
-export const OnboardingScreen = ({ onComplete, onGoProfile }: Props) => {
+export const OnboardingScreen = () => {
+  const navigation = useNavigation();
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [birthdate, setBirthdate] = useState('');
@@ -74,12 +71,24 @@ export const OnboardingScreen = ({ onComplete, onGoProfile }: Props) => {
     setStep(4);
   };
 
-  const handleGoProfile = () => {
-    if (onGoProfile) {
-      onGoProfile();
-    } else {
-      onComplete();
-    }
+  // 온보딩 완료 후 Home으로 이동 (스택 초기화)
+  const navigateToHome = () => {
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'Home' }],
+      }),
+    );
+  };
+
+  // 프로필 수정 페이지로 이동
+  const navigateToProfile = () => {
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 1,
+        routes: [{ name: 'Home' }, { name: 'ProfileEdit' }],
+      }),
+    );
   };
 
   const renderStepContent = () => {
@@ -96,8 +105,8 @@ export const OnboardingScreen = ({ onComplete, onGoProfile }: Props) => {
         return (
           <CompleteStep
             name={name}
-            onGoHome={onComplete}
-            onGoProfile={handleGoProfile}
+            onGoHome={navigateToHome}
+            onGoProfile={navigateToProfile}
           />
         );
       default:

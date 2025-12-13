@@ -9,28 +9,25 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DailyLogModal } from '@/components/DailyLogModal';
-import { LogHistoryScreen } from '@/screens/LogHistoryScreen';
-import { NotificationHistoryScreen } from '@/screens/NotificationHistoryScreen';
 import { ActivityGrass } from '@/components/ActivityGrass';
 import { useDailyLogStore } from '@/stores/dailyLogStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useAnalysisStore, ANALYSIS_INTERVAL } from '@/stores/analysisStore';
-import { useNotificationStore } from '@/stores/notificationStore';
 import { getProfile, updateLastAppOpenAt } from '@/services/profile';
-import { DailyLog, UserProfile, Notification } from '@/types/database';
+import { DailyLog, UserProfile } from '@/types/database';
+import { MainStackParamList } from '@/types';
 import { formatDateShort } from '@/utils/date';
 import { getUnreadCount } from '@/services/notification';
 
-interface Props {
-  onGoProfile?: () => void;
-}
+type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
-export const HomeScreen = ({ onGoProfile }: Props) => {
+export const HomeScreen = () => {
+  const navigation = useNavigation<NavigationProp>();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedLog, setSelectedLog] = useState<DailyLog | null>(null);
-  const [showHistory, setShowHistory] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [yearLogs, setYearLogs] = useState<DailyLog[]>([]); // 잔디 UI용 연도별 전체 로그
@@ -45,7 +42,6 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
   } = useDailyLogStore();
   const { user, logout } = useAuthStore();
   const { checkAndTriggerAnalysis, fetchLatestAnalysis } = useAnalysisStore();
-  const { setPendingNotification } = useNotificationStore();
 
   const loadUnreadCount = async () => {
     if (!user?.id) return;
@@ -153,51 +149,6 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
     return text.length > 30 ? text.slice(0, 30) + '...' : text;
   };
 
-  if (showHistory) {
-    return <LogHistoryScreen onBack={() => setShowHistory(false)} />;
-  }
-
-  const handleNotificationClick = async (notification: Notification) => {
-    setShowNotifications(false);
-
-    // 알림 타입별 분기 처리
-    switch (notification.type) {
-      case 'ai_question':
-        // AI 질문 알림 → RootNavigator에서 처리하도록 pendingNotification 설정
-        const questionId = (notification.data?.questionId ||
-          notification.data?.question_id) as string;
-
-        setPendingNotification({
-          type: notification.type,
-          questionId: questionId,
-          question_id: questionId,
-        });
-        break;
-
-      case 'analysis_complete':
-        // AI 분석 완료 알림 → 프로필 페이지로 이동
-        if (onGoProfile) {
-          onGoProfile();
-        }
-        break;
-
-      default:
-        break;
-    }
-  };
-
-  if (showNotifications) {
-    return (
-      <NotificationHistoryScreen
-        onBack={() => {
-          setShowNotifications(false);
-          loadUnreadCount();
-        }}
-        onNotificationClick={handleNotificationClick}
-      />
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
@@ -208,7 +159,7 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
             <View style={styles.headerButtons}>
               {/* 알림 아이콘 */}
               <TouchableOpacity
-                onPress={() => setShowNotifications(true)}
+                onPress={() => navigation.navigate('NotificationHistory')}
                 style={styles.notificationButton}
               >
                 <Text style={styles.notificationIcon}>📬</Text>
@@ -220,14 +171,12 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
                   </View>
                 )}
               </TouchableOpacity>
-              {onGoProfile && (
-                <TouchableOpacity
-                  onPress={onGoProfile}
-                  style={styles.headerButton}
-                >
-                  <Text style={styles.headerButtonText}>프로필</Text>
-                </TouchableOpacity>
-              )}
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Profile')}
+                style={styles.headerButton}
+              >
+                <Text style={styles.headerButtonText}>프로필</Text>
+              </TouchableOpacity>
               <TouchableOpacity onPress={logout} style={styles.headerButton}>
                 <Text style={styles.logoutText}>로그아웃</Text>
               </TouchableOpacity>
@@ -255,7 +204,7 @@ export const HomeScreen = ({ onGoProfile }: Props) => {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>최근 기록</Text>
             {logs.length > 0 && (
-              <TouchableOpacity onPress={() => setShowHistory(true)}>
+              <TouchableOpacity onPress={() => navigation.navigate('LogHistory')}>
                 <Text style={styles.moreButton}>더보기</Text>
               </TouchableOpacity>
             )}

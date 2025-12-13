@@ -11,9 +11,12 @@ import {
   Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useAuthStore } from '@/stores/authStore';
-import { Notification } from '@/types';
+import { useNotificationStore } from '@/stores/notificationStore';
+import { Notification, MainStackParamList } from '@/types';
 import {
   getNotifications,
   markAsRead,
@@ -22,17 +25,13 @@ import {
 } from '@/services/notification';
 import { formatDateMedium } from '@/utils/date';
 
-interface Props {
-  onBack: () => void;
-  onNotificationClick?: (notification: Notification) => void;
-}
+type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
 const PAGE_SIZE = 20;
 
-export const NotificationHistoryScreen = ({
-  onBack,
-  onNotificationClick,
-}: Props) => {
+export const NotificationHistoryScreen = () => {
+  const navigation = useNavigation<NavigationProp>();
+  const { setPendingNotification } = useNotificationStore();
   const { user } = useAuthStore();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -90,9 +89,28 @@ export const NotificationHistoryScreen = ({
       }
     }
 
-    // 타입별 처리는 부모 컴포넌트에서
-    if (onNotificationClick) {
-      onNotificationClick(notification);
+    // 알림 타입별 분기 처리
+    switch (notification.type) {
+      case 'ai_question':
+        // AI 질문 알림 → MainStack에서 처리하도록 pendingNotification 설정
+        const questionId = (notification.data?.questionId ||
+          notification.data?.question_id) as string;
+
+        setPendingNotification({
+          type: notification.type,
+          questionId: questionId,
+          question_id: questionId,
+        });
+        navigation.goBack();
+        break;
+
+      case 'analysis_complete':
+        // AI 분석 완료 알림 → 프로필 페이지로 이동
+        navigation.navigate('Profile');
+        break;
+
+      default:
+        break;
     }
   };
 
@@ -211,7 +229,7 @@ export const NotificationHistoryScreen = ({
     <SafeAreaView style={styles.container}>
       {/* 헤더 */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backButton}>← 뒤로</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>알림</Text>
