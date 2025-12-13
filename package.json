@@ -11,6 +11,7 @@
     "ios": "react-native run-ios",
     "ios:release": "react-native run-ios --configuration Release",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "start": "react-native start --reset-cache",
     "test": "jest"
   },
