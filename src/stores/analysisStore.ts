@@ -6,7 +6,7 @@ import {
   getAllAnalyses,
 } from '@/services/analysis';
 import { getLogsAfterDate } from '@/services/dailyLog';
-import { getAllAnsweredQuestions } from '@/services/aiQuestion';
+import { getAllAnsweredQuestions } from '@/services/aiQuestion.service';
 
 // 분석 트리거 간격 (이 값만 바꾸면 5, 10, 20 등으로 조절 가능)
 export const ANALYSIS_INTERVAL = 10;

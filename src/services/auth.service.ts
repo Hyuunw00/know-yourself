@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { translateErrorMessage } from '@/utils/errorMessage';
+import { User } from '@supabase/supabase-js';
 
 // 회원가입
 export const signUp = async (email: string, password: string) => {
@@ -13,8 +14,6 @@ export const signUp = async (email: string, password: string) => {
   }
 
   // 이미 가입된 이메일인 경우 체크
-  // 1. identities가 비어있거나
-  // 2. 이미 이메일 인증이 완료된 유저인 경우
   if (data.user) {
     if (data.user.identities?.length === 0) {
       return { user: null, error: '이미 가입된 이메일입니다.' };
@@ -62,7 +61,7 @@ export const getCurrentUser = async () => {
 };
 
 // 세션 변경 리스너
-export const onAuthStateChange = (callback: (user: any) => void) => {
+export const onAuthStateChange = (callback: (user: User | null) => void) => {
   return supabase.auth.onAuthStateChange((event, session) => {
     callback(session?.user ?? null);
   });

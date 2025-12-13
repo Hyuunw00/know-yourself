@@ -1,11 +1,13 @@
-import messaging from '@react-native-firebase/messaging';
+import messaging, {
+  FirebaseMessagingTypes,
+} from '@react-native-firebase/messaging';
 import { Platform, Alert, PermissionsAndroid } from 'react-native';
 import { supabase } from './supabase';
 
 /**
  * FCM 권한 요청 및 토큰 가져오기
  */
-export const requestPushPermission = async (): Promise<boolean> => {
+const requestPushPermission = async (): Promise<boolean> => {
   try {
     // Android 13+ (API 33+)에서는 런타임 권한 요청 필요
     if (Platform.OS === 'android' && Platform.Version >= 33) {
@@ -41,7 +43,7 @@ export const requestPushPermission = async (): Promise<boolean> => {
 /**
  * FCM 토큰 가져오기
  */
-export const getFCMToken = async (): Promise<string | null> => {
+const getFCMToken = async (): Promise<string | null> => {
   try {
     // iOS에서는 원격 메시지 등록이 필요
     if (Platform.OS === 'ios') {
@@ -60,7 +62,7 @@ export const getFCMToken = async (): Promise<string | null> => {
 /**
  * FCM 토큰을 DB에 저장
  */
-export const saveFCMToken = async (
+const saveFCMToken = async (
   userId: string,
   token: string,
 ): Promise<boolean> => {
@@ -180,19 +182,18 @@ export const setupForegroundMessageHandler = () => {
 
 /**
  * 백그라운드 메시지 핸들러 설정
- * (index.js에서 호출되어야 함)
  */
-export const setupBackgroundMessageHandler = () => {
-  messaging().setBackgroundMessageHandler(async remoteMessage => {
-    console.log('백그라운드 메시지 수신:', remoteMessage);
-  });
-};
+// export const setupBackgroundMessageHandler = () => {
+//   messaging().setBackgroundMessageHandler(async remoteMessage => {
+//     console.log('백그라운드 메시지 수신:', remoteMessage);
+//   });
+// };
 
 /**
  * 알림 클릭 리스너 설정
  */
 export const setupNotificationOpenedListener = (
-  callback: (remoteMessage: any) => void,
+  callback: (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => void,
 ) => {
   // 앱이 백그라운드에 있을 때 알림 클릭
   messaging().onNotificationOpenedApp(remoteMessage => {
