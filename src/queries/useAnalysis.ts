@@ -4,7 +4,7 @@ import {
   getLatestAnalysis,
   getAllAnalyses,
 } from '@/services/analysis.service';
-import { getLogsAfterDate } from '@/services/dailyLog';
+import { getLogsAfterDate } from '@/services/dailyLog.service';
 import { getAllAnsweredQuestions } from '@/services/aiQuestion.service';
 import { UserProfile, AIAnalysis } from '@/types';
 import { GC_TIME, STALE_TIME } from '@/constants/query';
