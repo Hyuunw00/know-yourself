@@ -13,16 +13,14 @@ import { useNavigation } from '@react-navigation/native';
 import DatePicker from 'react-native-date-picker';
 import { DailyLogModal } from '@/components/DailyLogModal';
 import { useAuthStore } from '@/stores/authStore';
-import { useLogHistoryFilterStore } from '@/stores/logHistoryFilterStore';
+import { useLogHistoryFilter } from '@/hooks/useLogHistoryFilter';
 import { DailyLog } from '@/types/database';
-import { formatDateLong, formatTime } from '@/utils/date';
+import { formatDateLong, formatTime, formatDateISO } from '@/utils/date';
 import {
   getDailyLogs,
   updateDailyLog,
   deleteDailyLog,
 } from '@/services/dailyLog.service';
-
-const PAGE_SIZE = 10;
 
 export const LogHistoryScreen = () => {
   const navigation = useNavigation();
@@ -37,22 +35,8 @@ export const LogHistoryScreen = () => {
   const [showEndPicker, setShowEndPicker] = useState(false);
 
   const { user } = useAuthStore();
-  const {
-    startDate,
-    endDate,
-    setStartDate,
-    setEndDate,
-    clearFilters,
-    initializeDefaultDates,
-  } = useLogHistoryFilterStore();
-
-  // 최초 진입 시 기본 날짜 설정
-  useEffect(() => {
-    if (!startDate && !endDate) {
-      initializeDefaultDates();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const { startDate, endDate, setStartDate, setEndDate, clearFilters } =
+    useLogHistoryFilter();
 
   const loadLogs = useCallback(
     async (offset: number = 0) => {
@@ -65,7 +49,7 @@ export const LogHistoryScreen = () => {
       }
 
       const data = await getDailyLogs(user.id, {
-        limit: PAGE_SIZE,
+        limit: 10,
         offset,
         startDate,
         endDate,
@@ -77,7 +61,7 @@ export const LogHistoryScreen = () => {
         setLogs(prev => [...prev, ...data]);
       }
 
-      setHasMore(data.length === PAGE_SIZE);
+      setHasMore(data.length === 10);
       setIsLoading(false);
       setIsLoadingMore(false);
       setRefreshing(false);
@@ -223,7 +207,7 @@ export const LogHistoryScreen = () => {
         maximumDate={endDate ? new Date(endDate) : new Date()}
         onConfirm={date => {
           setShowStartPicker(false);
-          setStartDate(date.toISOString().split('T')[0]);
+          setStartDate(formatDateISO(date));
         }}
         onCancel={() => setShowStartPicker(false)}
         title="시작일 선택"
@@ -241,7 +225,7 @@ export const LogHistoryScreen = () => {
         maximumDate={new Date()}
         onConfirm={date => {
           setShowEndPicker(false);
-          setEndDate(date.toISOString().split('T')[0]);
+          setEndDate(formatDateISO(date));
         }}
         onCancel={() => setShowEndPicker(false)}
         title="종료일 선택"
