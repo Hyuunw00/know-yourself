@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { useAuthStore } from '@/stores/authStore';
 import {
@@ -11,6 +12,8 @@ import {
 } from '@/services/pushNotification.service';
 import { updateLastAppOpenAt } from '@/services/profile';
 import { useNotificationStore } from '@/stores/notificationStore';
+
+const queryClient = new QueryClient();
 
 function App() {
   const { user } = useAuthStore();
@@ -41,12 +44,14 @@ function App() {
   }, [setPendingNotification]);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <StatusBar barStyle="dark-content" />
-        <RootNavigator />
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <QueryClientProvider client={queryClient}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <StatusBar barStyle="dark-content" />
+          <RootNavigator />
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </QueryClientProvider>
   );
 }
 

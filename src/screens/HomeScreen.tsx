@@ -6,14 +6,20 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DailyLogModal } from '@/components/DailyLogModal';
 import { ActivityGrass } from '@/components/ActivityGrass';
-import { useDailyLogStore } from '@/stores/dailyLogStore';
+import {
+  useRecentLogs,
+  useYearLogs,
+  useDailyLogCount,
+  useAddDailyLog,
+  useUpdateDailyLog,
+  useDeleteDailyLog,
+} from '@/hooks/useDailyLogs';
 import { useAuthStore } from '@/stores/authStore';
 import { useAnalysisStore, ANALYSIS_INTERVAL } from '@/stores/analysisStore';
 import { getProfile, updateLastAppOpenAt } from '@/services/profile';
@@ -30,18 +36,18 @@ export const HomeScreen = () => {
   const [selectedLog, setSelectedLog] = useState<DailyLog | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [yearLogs, setYearLogs] = useState<DailyLog[]>([]); // 잔디 UI용 연도별 전체 로그
-  const {
-    logs,
-    totalCount,
-    isLoading,
-    fetchLogs,
-    addLog,
-    updateLog,
-    deleteLog,
-  } = useDailyLogStore();
+
   const { user, logout } = useAuthStore();
   const { checkAndTriggerAnalysis, fetchLatestAnalysis } = useAnalysisStore();
+
+  // React Query hooks
+  const currentYear = new Date().getFullYear();
+  const { data: logs = [], isLoading } = useRecentLogs(user?.id);
+  const { data: yearLogs = [] } = useYearLogs(user?.id, currentYear);
+  const { data: totalCount = 0 } = useDailyLogCount(user?.id);
+  const addLogMutation = useAddDailyLog(user?.id);
+  const updateLogMutation = useUpdateDailyLog(user?.id);
+  const deleteLogMutation = useDeleteDailyLog(user?.id);
 
   const loadUnreadCount = async () => {
     if (!user?.id) return;
@@ -49,77 +55,41 @@ export const HomeScreen = () => {
     setUnreadCount(count);
   };
 
-  // 잔디 UI용 해당 연도의 모든 로그 불러오기
-  const loadYearLogs = async () => {
-    if (!user?.id) return;
-
-    const currentYear = new Date().getFullYear();
-    const startDate = `${currentYear}-01-01`;
-    const endDate = `${currentYear}-12-31`;
-
-    const { getDailyLogs } = await import('@/services/dailyLog');
-    const allYearLogs = await getDailyLogs(user.id, { startDate, endDate });
-    setYearLogs(allYearLogs);
-  };
-
   useEffect(() => {
     if (user?.id) {
-      fetchLogs(user.id);
       getProfile(user.id).then(setProfile);
       updateLastAppOpenAt(user.id);
       loadUnreadCount();
-      loadYearLogs(); // 잔디 UI용 연도별 로그 로드
       fetchLatestAnalysis(user.id); // 최신 분석 불러오기 (analysis_number 증가를 위해)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchLogs, user?.id]);
-
-  // AI 질문 모달 로직은 RootNavigator로 이동 (전역 처리)
+  }, [user?.id]);
 
   const handleSaveLog = async (text: string) => {
     if (!user?.id) return;
 
-    // 오늘 작성한 기록 개수 확인 (제한: 3개)
-    const { getTodayLogCount } = await import('@/services/dailyLog');
-    const todayCount = await getTodayLogCount(user.id);
+    addLogMutation.mutate(text, {
+      onSuccess: () => {
+        setModalVisible(false);
 
-    if (todayCount >= 3) {
-      Alert.alert(
-        '기록 제한',
-        '하루에 최대 3개까지 기록할 수 있어요.\n내일 다시 작성해주세요!',
-        [{ text: '확인' }],
-      );
-      return;
-    }
+        const newTotalCount = totalCount + 1;
+        console.log('[HomeScreen] 기록 추가 후 totalCount:', newTotalCount);
 
-    const success = await addLog(user.id, text);
-
-    if (success) {
-      setModalVisible(false);
-      loadYearLogs(); // 잔디 UI 업데이트
-
-      const newTotalCount = totalCount + 1;
-      console.log('[HomeScreen] 기록 추가 후 totalCount:', newTotalCount);
-      console.log('[HomeScreen] profile 존재:', !!profile);
-      console.log(
-        '[HomeScreen] 10의 배수 체크:',
-        newTotalCount % ANALYSIS_INTERVAL === 0,
-      );
-
-      if (profile) {
-        // ANALYSIS_INTERVAL의 배수일 때 백그라운드 분석 트리거
-        if (
-          newTotalCount >= ANALYSIS_INTERVAL &&
-          newTotalCount % ANALYSIS_INTERVAL === 0
-        ) {
-          console.log(
-            '[HomeScreen] checkAndTriggerAnalysis 호출 - count:',
-            newTotalCount,
-          );
-          checkAndTriggerAnalysis(user.id, profile, newTotalCount);
+        if (profile) {
+          // ANALYSIS_INTERVAL의 배수일 때 백그라운드 분석 트리거
+          if (
+            newTotalCount >= ANALYSIS_INTERVAL &&
+            newTotalCount % ANALYSIS_INTERVAL === 0
+          ) {
+            console.log(
+              '[HomeScreen] checkAndTriggerAnalysis 호출 - count:',
+              newTotalCount,
+            );
+            checkAndTriggerAnalysis(user.id, profile, newTotalCount);
+          }
         }
-      }
-    }
+      },
+    });
   };
 
   const handleLogPress = (log: DailyLog) => {
@@ -127,16 +97,25 @@ export const HomeScreen = () => {
     setModalVisible(true);
   };
 
-  const handleUpdateLog = async (logId: string, text: string) => {
-    await updateLog(logId, text);
-    setSelectedLog(null);
-    setModalVisible(false);
+  const handleUpdateLog = (logId: string, text: string) => {
+    updateLogMutation.mutate(
+      { logId, text },
+      {
+        onSuccess: () => {
+          setSelectedLog(null);
+          setModalVisible(false);
+        },
+      },
+    );
   };
 
-  const handleDeleteLog = async (logId: string) => {
-    await deleteLog(logId);
-    setSelectedLog(null);
-    setModalVisible(false);
+  const handleDeleteLog = (logId: string) => {
+    deleteLogMutation.mutate(logId, {
+      onSuccess: () => {
+        setSelectedLog(null);
+        setModalVisible(false);
+      },
+    });
   };
 
   const handleCloseModal = () => {
@@ -204,7 +183,9 @@ export const HomeScreen = () => {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>최근 기록</Text>
             {logs.length > 0 && (
-              <TouchableOpacity onPress={() => navigation.navigate('LogHistory')}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('LogHistory')}
+              >
                 <Text style={styles.moreButton}>더보기</Text>
               </TouchableOpacity>
             )}

@@ -14,7 +14,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DatePicker from 'react-native-date-picker';
 import { useAuthStore } from '@/stores/authStore';
 import { useAnalysisStore, isProfileComplete } from '@/stores/analysisStore';
-import { useDailyLogStore } from '@/stores/dailyLogStore';
+import { useDailyLogCount } from '@/hooks/useDailyLogs';
 import { getProfile, updateProfile } from '@/services/profile';
 import { MBTI_TYPES, GENDERS } from '@/constants/onboarding';
 import {
@@ -31,7 +31,7 @@ export const ProfileEditScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const { user } = useAuthStore();
   const { latestAnalysis, runAnalysis } = useAnalysisStore();
-  const { totalCount } = useDailyLogStore();
+  const { data: totalCount = 0 } = useDailyLogCount(user?.id);
   const [profile, setProfile] = useState<Partial<UserProfile>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);

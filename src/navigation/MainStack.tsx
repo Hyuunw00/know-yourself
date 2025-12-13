@@ -33,7 +33,7 @@ export const MainStack = () => {
   const { pendingNotification, clearPendingNotification } =
     useNotificationStore();
 
-  // 프로필 존재 여부 확인
+  // 프로필 존재 여부(온보딩 여부) 확인
   useEffect(() => {
     const checkProfile = async () => {
       if (!user?.id) {
@@ -81,7 +81,7 @@ export const MainStack = () => {
     handlePendingNotification();
   }, [pendingNotification, user?.id, clearPendingNotification]);
 
-  // 미답변 AI 질문 체크 (pending notification이 없을 때만)
+  // 미답변 AI 질문 체크 (pending notification이 없을 때만, AI 질문 중복 방지)
   useEffect(() => {
     const checkPendingQuestion = async () => {
       if (!user?.id || !hasProfile || pendingNotification) {
