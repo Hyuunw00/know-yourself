@@ -13,9 +13,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DailyLogModal } from '@/components/DailyLogModal';
 import { ActivityGrass } from '@/components/ActivityGrass';
 import {
-  useRecentLogs,
-  useYearLogs,
-  useDailyLogCount,
+  useDailyLogs,
   useAddDailyLog,
   useUpdateDailyLog,
   useDeleteDailyLog,
@@ -46,12 +44,20 @@ export const HomeScreen = () => {
 
   // React Query - DailyLogs
   const currentYear = new Date().getFullYear();
-  const { data: logs = [], isLoading } = useRecentLogs(user?.id);
-  const { data: yearLogs = [] } = useYearLogs(user?.id, currentYear);
-  const { data: totalCount = 0 } = useDailyLogCount(user?.id);
+  const { data: recentData, isLoading } = useDailyLogs(user?.id, { limit: 5 });
+  const { data: yearData } = useDailyLogs(user?.id, {
+    startDate: `${currentYear}-01-01`,
+    endDate: `${currentYear}-12-31`,
+  });
+  const { data: totalData } = useDailyLogs(user?.id);
+
+  const logs = recentData?.data ?? [];
+  const yearLogs = yearData?.data ?? [];
+  const totalCount = totalData?.count ?? 0;
+
   const addLogMutation = useAddDailyLog(user?.id);
-  const updateLogMutation = useUpdateDailyLog(user?.id);
-  const deleteLogMutation = useDeleteDailyLog(user?.id);
+  const updateLogMutation = useUpdateDailyLog();
+  const deleteLogMutation = useDeleteDailyLog();
 
   const loadUnreadCount = async () => {
     if (!user?.id) return;

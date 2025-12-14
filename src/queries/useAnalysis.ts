@@ -4,7 +4,7 @@ import {
   getLatestAnalysis,
   getAllAnalyses,
 } from '@/services/analysis.service';
-import { getLogsAfterDate } from '@/services/dailyLog.service';
+import { getDailyLogs } from '@/services/dailyLog.service';
 import { getAllAnsweredQuestions } from '@/services/aiQuestion.service';
 import { UserProfile, AIAnalysis } from '@/types';
 import { GC_TIME, STALE_TIME } from '@/constants/query';
@@ -60,10 +60,9 @@ export const useRunAnalysis = () => {
         : 1;
 
       // 마지막 분석 이후의 로그만 가져오기
-      const logsToAnalyze = await getLogsAfterDate(
-        userId,
-        latestAnalysis?.created_at,
-      );
+      const { data: logsToAnalyze } = await getDailyLogs(userId, {
+        startDate: latestAnalysis?.created_at?.split('T')[0],
+      });
 
       // 답변된 AI 질문들 가져오기
       const aiQuestions = await getAllAnsweredQuestions(userId);

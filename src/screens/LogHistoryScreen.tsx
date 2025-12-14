@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,23 +14,18 @@ import DatePicker from 'react-native-date-picker';
 import { DailyLogModal } from '@/components/DailyLogModal';
 import { useAuthStore } from '@/stores/authStore';
 import { useLogHistoryFilter } from '@/hooks/useLogHistoryFilter';
+import {
+  useDailyLogsInfinite,
+  useUpdateDailyLog,
+  useDeleteDailyLog,
+} from '@/queries/useDailyLogs';
 import { DailyLog } from '@/types/database';
 import { formatDateLong, formatTime, formatDateISO } from '@/utils/date';
-import {
-  getDailyLogs,
-  updateDailyLog,
-  deleteDailyLog,
-} from '@/services/dailyLog.service';
 
 export const LogHistoryScreen = () => {
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedLog, setSelectedLog] = useState<DailyLog | null>(null);
-  const [logs, setLogs] = useState<DailyLog[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
@@ -38,50 +33,32 @@ export const LogHistoryScreen = () => {
   const { startDate, endDate, setStartDate, setEndDate, clearFilters } =
     useLogHistoryFilter();
 
-  const loadLogs = useCallback(
-    async (offset: number = 0) => {
-      if (!user?.id) return;
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    refetch,
+    isRefetching,
+  } = useDailyLogsInfinite(user?.id, { startDate, endDate });
 
-      if (offset === 0) {
-        setIsLoading(true);
-      } else {
-        setIsLoadingMore(true);
-      }
+  const updateLogMutation = useUpdateDailyLog();
+  const deleteLogMutation = useDeleteDailyLog();
 
-      const data = await getDailyLogs(user.id, {
-        limit: 10,
-        offset,
-        startDate,
-        endDate,
-      });
-
-      if (offset === 0) {
-        setLogs(data);
-      } else {
-        setLogs(prev => [...prev, ...data]);
-      }
-
-      setHasMore(data.length === 10);
-      setIsLoading(false);
-      setIsLoadingMore(false);
-      setRefreshing(false);
-    },
-    [user?.id, startDate, endDate],
+  const logs = useMemo(
+    () => data?.pages.flatMap(page => page.data) ?? [],
+    [data],
   );
 
-  useEffect(() => {
-    loadLogs();
-  }, [loadLogs]);
-
   const handleLoadMore = () => {
-    if (!isLoadingMore && hasMore && !isLoading) {
-      loadLogs(logs.length);
+    if (!isFetchingNextPage && hasNextPage) {
+      fetchNextPage();
     }
   };
 
   const handleRefresh = () => {
-    setRefreshing(true);
-    loadLogs(0);
+    refetch();
   };
 
   const handleLogPress = (log: DailyLog) => {
@@ -89,22 +66,25 @@ export const LogHistoryScreen = () => {
     setModalVisible(true);
   };
 
-  const handleUpdateLog = async (logId: string, text: string) => {
-    const updated = await updateDailyLog(logId, text);
-    if (updated) {
-      setLogs(prev => prev.map(log => (log.id === logId ? updated : log)));
-    }
-    setSelectedLog(null);
-    setModalVisible(false);
+  const handleUpdateLog = (logId: string, text: string) => {
+    updateLogMutation.mutate(
+      { logId, text },
+      {
+        onSuccess: () => {
+          setSelectedLog(null);
+          setModalVisible(false);
+        },
+      },
+    );
   };
 
-  const handleDeleteLog = async (logId: string) => {
-    const success = await deleteDailyLog(logId);
-    if (success) {
-      setLogs(prev => prev.filter(log => log.id !== logId));
-    }
-    setSelectedLog(null);
-    setModalVisible(false);
+  const handleDeleteLog = (logId: string) => {
+    deleteLogMutation.mutate(logId, {
+      onSuccess: () => {
+        setSelectedLog(null);
+        setModalVisible(false);
+      },
+    });
   };
 
   const handleCloseModal = () => {
@@ -128,7 +108,7 @@ export const LogHistoryScreen = () => {
   );
 
   const renderFooter = () => {
-    if (!isLoadingMore) return null;
+    if (!isFetchingNextPage) return null;
     return (
       <View style={styles.footerLoader}>
         <ActivityIndicator color="#4CAF50" />
@@ -248,7 +228,7 @@ export const LogHistoryScreen = () => {
           ListEmptyComponent={renderEmpty}
           refreshControl={
             <RefreshControl
-              refreshing={refreshing}
+              refreshing={isRefetching && !isFetchingNextPage}
               onRefresh={handleRefresh}
               tintColor="#4CAF50"
             />
