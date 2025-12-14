@@ -17,7 +17,7 @@ import {
   GenderStep,
   MBTIStep,
   CompleteStep,
-} from '@/components/onboarding';
+} from './components';
 
 export const OnboardingScreen = () => {
   const navigation = useNavigation();

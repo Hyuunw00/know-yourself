@@ -3,7 +3,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MainStackParamList } from '@/types';
 import { HomeScreen } from '@/screens/HomeScreen';
-import { OnboardingScreen } from '@/screens/OnboardingScreen';
+import { OnboardingScreen } from '@/screens/Onboarding';
 import { ProfileScreen } from '@/screens/ProfileScreen';
 import { ProfileEditScreen } from '@/screens/ProfileEdit';
 import { LogHistoryScreen } from '@/screens/LogHistoryScreen';
