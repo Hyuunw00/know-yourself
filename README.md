@@ -1,97 +1,184 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Know Yourself
 
-# Getting Started
+AI 기반 자기 성찰 일기 앱. 매일의 생각과 감정을 기록하고, AI가 패턴을 분석해 나만의 인사이트를 제공합니다.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Screenshots
 
-## Step 1: Start Metro
+|                     홈 화면                      |                     프로필 분석                     |
+| :----------------------------------------------: | :-------------------------------------------------: |
+| ![Home](src/assets/screenshots/screenshot-1.png) | ![Profile](src/assets/screenshots/screenshot-2.png) |
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## Features
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+### Daily Log (일일 기록)
 
-```sh
-# Using npm
+- 매일의 생각, 감정, 경험을 자유롭게 텍스트로 기록
+- 기록 수정 및 삭제 가능
+- 날짜별 필터링으로 과거 기록 조회
+- GitHub 스타일 Activity Grass로 기록 현황 시각화
+
+### AI Analysis (AI 분석)
+
+10개 기록마다 AI가 자동으로 종합 분석을 수행:
+
+- **한 줄 정의**: 나를 한 문장으로 표현
+- **핵심 키워드**: AI가 발견한 나의 특징 태그
+- **강점 분석**: 기록에서 발견된 강점
+- **성장 포인트**: 개선 가능한 영역
+- **감정 패턴**: 감정 변화 트렌드
+- **행동 습관**: 반복되는 행동 패턴
+- **성장 인사이트**: 맞춤형 조언
+
+### AI Questions (AI 질문)
+
+- AI가 기록을 분석해 맞춤형 질문 생성
+- 질문에 답변하며 더 깊은 자기 성찰 유도
+- 답변은 다음 분석에 반영
+
+### Push Notifications (푸시 알림)
+
+- 기록 리마인더 알림
+- 새로운 AI 질문 알림
+- 분석 완료 알림
+
+### Onboarding (온보딩)
+
+사용자 프로필 수집으로 더 정확한 분석:
+
+- 이름, 생년월일, 성별
+- MBTI (선택)
+- 직업 (선택)
+
+## Tech Stack
+
+| Category     | Technology                                |
+| ------------ | ----------------------------------------- |
+| Framework    | React Native 0.82                         |
+| Language     | TypeScript 5.8                            |
+| Client State | Zustand                                   |
+| Server State | React Query (TanStack Query)              |
+| Backend      | Supabase (Auth, Database, Edge Functions) |
+| Push         | Firebase Cloud Messaging                  |
+| Navigation   | React Navigation 7                        |
+| Storage      | AsyncStorage                              |
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                      React Native App                    │
+├─────────────────────────────────────────────────────────┤
+│  Screens          Components         Navigation          │
+│  ├── Home         ├── DailyLogModal  ├── AuthStack      │
+│  ├── Profile      ├── AIQuestionModal└── MainStack      │
+│  ├── LogHistory   └── ActivityGrass                     │
+│  └── Onboarding                                         │
+├─────────────────────────────────────────────────────────┤
+│  State Management                                        │
+│  ├── Zustand (authStore, notificationStore)             │
+│  └── React Query (useDailyLogs, useAnalysis)            │
+├─────────────────────────────────────────────────────────┤
+│  Services Layer                                          │
+│  ├── auth.service       ├── analysis.service            │
+│  ├── profile.service    ├── aiQuestion.service          │
+│  ├── dailyLog.service   └── pushNotification.service    │
+├─────────────────────────────────────────────────────────┤
+│                     Supabase                             │
+│  ├── Auth (Google OAuth)                                │
+│  ├── Database (PostgreSQL)                              │
+│  └── Edge Functions (AI 분석)                           │
+└─────────────────────────────────────────────────────────┘
+```
+
+## Project Structure
+
+```
+src/
+├── assets/              # 이미지, 아이콘
+├── components/          # 재사용 UI 컴포넌트
+│   └── onboarding/      # 온보딩 단계별 컴포넌트
+├── constants/           # 상수 정의
+├── database/            # Supabase 클라이언트
+├── hooks/               # 커스텀 훅
+├── navigation/          # 네비게이션 설정
+├── queries/             # React Query 훅
+├── screens/             # 화면 컴포넌트
+├── services/            # API 서비스 레이어
+├── stores/              # Zustand 스토어
+├── types/               # TypeScript 타입 정의
+└── utils/               # 유틸리티 함수
+```
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js >= 20
+- React Native 개발 환경 ([공식 가이드](https://reactnative.dev/docs/set-up-your-environment))
+- Xcode (iOS)
+- Android Studio (Android)
+
+### Installation
+
+```bash
+# 의존성 설치
+npm install
+
+# iOS 의존성 설치
+cd ios && bundle install && bundle exec pod install && cd ..
+```
+
+### Environment Variables
+
+`.env` 파일 생성:
+
+```env
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### Running the App
+
+```bash
+# Metro 서버 시작
 npm start
 
-# OR using Yarn
-yarn start
-```
-
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
-```
-
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
+# iOS 실행
 npm run ios
 
-# OR using Yarn
-yarn ios
+# Android 실행
+npm run android
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+## Scripts
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+| Command                   | Description                   |
+| ------------------------- | ----------------------------- |
+| `npm start`               | Metro 서버 시작 (캐시 리셋)   |
+| `npm run ios`             | iOS 앱 실행                   |
+| `npm run android`         | Android 앱 실행               |
+| `npm run ios:release`     | iOS Release 빌드              |
+| `npm run android:release` | Android Release 빌드          |
+| `npm run android:build`   | Android APK 빌드              |
+| `npm run android:bundle`  | Android AAB 빌드 (Play Store) |
+| `npm run lint`            | ESLint 실행                   |
+| `npm run typecheck`       | TypeScript 타입 체크          |
+| `npm test`                | Jest 테스트 실행              |
 
-## Step 3: Modify your app
+## AI Analysis Flow
 
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+```
+사용자 기록 10개 도달
+        ↓
+shouldTriggerAnalysis() 체크
+        ↓
+Supabase Edge Function 호출 (analyze-log)
+        ↓
+Claude API로 분석 요청
+        ↓
+분석 결과 DB 저장
+        ↓
+푸시 알림 전송
+        ↓
+React Query 캐시 갱신
+```
