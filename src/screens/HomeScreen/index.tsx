@@ -11,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DailyLogModal } from '@/components/DailyLogModal';
-import { ActivityGrass } from '@/components/ActivityGrass';
+import { ActivityGrass } from './components';
 import {
   useDailyLogs,
   useAddDailyLog,
