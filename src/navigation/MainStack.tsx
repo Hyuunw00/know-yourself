@@ -50,6 +50,7 @@ export const MainStack = () => {
   // 백그라운드 알림 클릭으로 진입한 경우 처리
   useEffect(() => {
     const handlePendingNotification = async () => {
+      console.log('[MainStack] pendingNotification:', pendingNotification);
       if (!pendingNotification || !user?.id) return;
 
       const notificationType = pendingNotification.type as string;
@@ -62,8 +63,10 @@ export const MainStack = () => {
 
           if (questionId) {
             const question = await getQuestionById(questionId);
+            console.log('[MainStack] getQuestionById 결과:', question);
 
-            if (question) {
+            // 이미 스킵되었거나 답변된 질문은 모달 표시 안함
+            if (question && !question.answer_text && !question.skipped) {
               setAiQuestion(question);
               setShowQuestionModal(true);
             }

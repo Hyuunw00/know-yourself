@@ -181,17 +181,10 @@ export const setupForegroundMessageHandler = () => {
 };
 
 /**
- * 백그라운드 메시지 핸들러 설정
- */
-// export const setupBackgroundMessageHandler = () => {
-//   messaging().setBackgroundMessageHandler(async remoteMessage => {
-//     console.log('백그라운드 메시지 수신:', remoteMessage);
-//   });
-// };
-
-/**
  * 알림 클릭 리스너 설정
  */
+let initialNotificationHandled = false;
+
 export const setupNotificationOpenedListener = (
   callback: (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => void,
 ) => {
@@ -201,13 +194,16 @@ export const setupNotificationOpenedListener = (
     callback(remoteMessage);
   });
 
-  // 앱이 종료된 상태에서 알림 클릭
-  messaging()
-    .getInitialNotification()
-    .then(remoteMessage => {
-      if (remoteMessage) {
-        console.log('종료 상태에서 알림 클릭:', remoteMessage);
-        callback(remoteMessage);
-      }
-    });
+  // 앱이 종료된 상태에서 알림 클릭 (최초 1회만 처리)
+  if (!initialNotificationHandled) {
+    messaging()
+      .getInitialNotification()
+      .then(remoteMessage => {
+        if (remoteMessage) {
+          console.log('종료 상태에서 알림 클릭:', remoteMessage);
+          callback(remoteMessage);
+        }
+        initialNotificationHandled = true;
+      });
+  }
 };
