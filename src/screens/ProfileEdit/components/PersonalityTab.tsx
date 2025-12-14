@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import { PERSONALITY_KEYWORDS } from '@/constants/profile';
+import { PERSONALITY_KEYWORDS } from '@/constants';
 import { UserProfile } from '@/types';
 
 interface Props {

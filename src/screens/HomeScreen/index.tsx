@@ -10,22 +10,23 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { DailyLogModal } from '@/components/DailyLogModal';
+import { DailyLogModal } from '@/components';
 import { ActivityGrass } from './components';
 import {
   useDailyLogs,
   useAddDailyLog,
   useUpdateDailyLog,
   useDeleteDailyLog,
-} from '@/queries/useDailyLogs';
-import { useAuthStore } from '@/stores/authStore';
-import { useLatestAnalysis, useRunAnalysis } from '@/queries/useAnalysis';
-import { shouldTriggerAnalysis } from '@/utils/analysis';
-import { useProfile, useUpdateLastAppOpenAt } from '@/queries/useProfile';
+  useLatestAnalysis,
+  useRunAnalysis,
+  useProfile,
+  useUpdateLastAppOpenAt,
+  useUnreadCount,
+} from '@/queries';
+import { useAuthStore } from '@/stores';
+import { shouldTriggerAnalysis, formatDateShort } from '@/utils';
 import { DailyLog } from '@/types/database';
 import { MainStackParamList } from '@/types';
-import { formatDateShort } from '@/utils/date';
-import { useUnreadCount } from '@/queries/useNotifications';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 

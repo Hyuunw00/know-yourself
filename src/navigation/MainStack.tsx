@@ -8,17 +8,16 @@ import { ProfileScreen } from '@/screens/ProfileScreen';
 import { ProfileEditScreen } from '@/screens/ProfileEdit';
 import { LogHistoryScreen } from '@/screens/LogHistoryScreen';
 import { NotificationHistoryScreen } from '@/screens/NotificationHistoryScreen';
-import { useAuthStore } from '@/stores/authStore';
-import { useNotificationStore } from '@/stores/notificationStore';
-import { checkProfileExists } from '@/services/profile.service';
-import { AIQuestionModal } from '@/components/AIQuestionModal';
-import { AIQuestion } from '@/types/database';
+import { useAuthStore, useNotificationStore } from '@/stores';
 import {
+  checkProfileExists,
   getTodayQuestion,
   answerQuestion,
   skipQuestion,
   getQuestionById,
-} from '@/services/aiQuestion.service';
+} from '@/services';
+import { AIQuestionModal } from '@/components';
+import { AIQuestion } from '@/types/database';
 
 const Stack = createNativeStackNavigator<MainStackParamList>();
 
@@ -50,7 +49,6 @@ export const MainStack = () => {
   // 백그라운드 알림 클릭으로 진입한 경우 처리
   useEffect(() => {
     const handlePendingNotification = async () => {
-      console.log('[MainStack] pendingNotification:', pendingNotification);
       if (!pendingNotification || !user?.id) return;
 
       const notificationType = pendingNotification.type as string;
@@ -63,7 +61,6 @@ export const MainStack = () => {
 
           if (questionId) {
             const question = await getQuestionById(questionId);
-            console.log('[MainStack] getQuestionById 결과:', question);
 
             // 이미 스킵되었거나 답변된 질문은 모달 표시 안함
             if (question && !question.answer_text && !question.skipped) {

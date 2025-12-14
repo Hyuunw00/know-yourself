@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import { INTERESTS } from '@/constants/profile';
+import { INTERESTS } from '@/constants';
 import { UserProfile } from '@/types';
 
 interface Props {

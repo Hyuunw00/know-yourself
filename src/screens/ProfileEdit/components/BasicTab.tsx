@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import DatePicker from 'react-native-date-picker';
-import { MBTI_TYPES, GENDERS } from '@/constants/onboarding';
+import { MBTI_TYPES, GENDERS } from '@/constants';
 import { UserProfile } from '@/types';
 
 interface Props {

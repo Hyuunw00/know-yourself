@@ -10,12 +10,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useAuthStore } from '@/stores/authStore';
-import { useLatestAnalysis, useRunAnalysis } from '@/queries/useAnalysis';
-import { useDailyLogs } from '@/queries/useDailyLogs';
-import { useProfile, useUpdateProfile } from '@/queries/useProfile';
-import { isProfileComplete } from '@/utils/profile';
-import { PROFILE_TABS, ProfileTabKey } from '@/constants/profile';
+import { useAuthStore } from '@/stores';
+import {
+  useLatestAnalysis,
+  useRunAnalysis,
+  useDailyLogs,
+  useProfile,
+  useUpdateProfile,
+} from '@/queries';
+import { isProfileComplete } from '@/utils';
+import { PROFILE_TABS, ProfileTabKey } from '@/constants';
 import { UserProfile, MainStackParamList } from '@/types';
 import { BasicTab, PersonalityTab, LifestyleTab, ValuesTab } from './components';
 

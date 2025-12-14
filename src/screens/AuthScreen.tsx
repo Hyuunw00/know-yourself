@@ -12,7 +12,7 @@ import {
   Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuthStore } from '@/stores';
 
 export const AuthScreen = () => {
   const [isLogin, setIsLogin] = useState(true); // true: 로그인, false: 회원가입

@@ -1,11 +1,6 @@
 import { create } from 'zustand';
 import { User } from '@supabase/supabase-js';
-import {
-  signIn,
-  signUp,
-  signOut,
-  getCurrentUser,
-} from '@/services/auth.service';
+import { signIn, signUp, signOut, getCurrentUser } from '@/services';
 
 interface AuthState {
   user: User | null;

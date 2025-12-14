@@ -10,9 +10,9 @@ import {
   saveDailyLog,
   updateDailyLog,
   deleteDailyLog,
-} from '@/services/dailyLog.service';
-import { getTodayISO } from '@/utils/date';
-import { GC_TIME, STALE_TIME } from '@/constants/query';
+} from '@/services';
+import { getTodayISO } from '@/utils';
+import { GC_TIME, STALE_TIME } from '@/constants';
 
 export const dailyLogKeys = {
   all: ['dailyLogs'] as const,

@@ -17,17 +17,15 @@ import Reanimated, {
   SharedValue,
   useAnimatedStyle,
 } from 'react-native-reanimated';
-import { useAuthStore } from '@/stores/authStore';
-import { useNotificationStore } from '@/stores/notificationStore';
+import { useAuthStore, useNotificationStore } from '@/stores';
 import {
   useNotificationsInfinite,
   useMarkAsRead,
   useMarkAllAsRead,
   useDeleteNotification,
-} from '@/queries/useNotifications';
+} from '@/queries';
 import { Notification, MainStackParamList } from '@/types';
-import { formatDateMedium } from '@/utils/date';
-import { getNotificationIcon } from '@/utils/notification';
+import { formatDateMedium, getNotificationIcon } from '@/utils';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 

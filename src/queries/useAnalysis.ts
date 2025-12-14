@@ -3,11 +3,11 @@ import {
   requestAnalysis,
   getLatestAnalysis,
   getAllAnalyses,
-} from '@/services/analysis.service';
-import { getDailyLogs } from '@/services/dailyLog.service';
-import { getAllAnsweredQuestions } from '@/services/aiQuestion.service';
+  getDailyLogs,
+  getAllAnsweredQuestions,
+} from '@/services';
 import { UserProfile, AIAnalysis } from '@/types';
-import { GC_TIME, STALE_TIME } from '@/constants/query';
+import { GC_TIME, STALE_TIME } from '@/constants';
 
 export const analysisKeys = {
   all: ['analysis'] as const,

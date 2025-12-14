@@ -10,8 +10,8 @@ import {
   markAsRead,
   markAllAsRead,
   deleteNotification,
-} from '@/services/notification.service';
-import { GC_TIME, STALE_TIME } from '@/constants/query';
+} from '@/services';
+import { GC_TIME, STALE_TIME } from '@/constants';
 
 export const notificationKeys = {
   all: ['notifications'] as const,

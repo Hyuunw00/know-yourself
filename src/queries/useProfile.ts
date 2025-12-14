@@ -4,9 +4,9 @@ import {
   updateProfile,
   updateLastAppOpenAt,
   deleteAccount,
-} from '@/services/profile.service';
+} from '@/services';
 import { UserProfile } from '@/types';
-import { GC_TIME, STALE_TIME } from '@/constants/query';
+import { GC_TIME, STALE_TIME } from '@/constants';
 
 export const profileKeys = {
   all: ['profile'] as const,

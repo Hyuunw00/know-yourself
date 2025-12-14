@@ -12,11 +12,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useAuthStore } from '@/stores/authStore';
-import { useLatestAnalysis, useRunAnalysis } from '@/queries/useAnalysis';
-import { useProfile, useDeleteAccount } from '@/queries/useProfile';
+import { useAuthStore } from '@/stores';
+import { useLatestAnalysis, useRunAnalysis, useProfile, useDeleteAccount } from '@/queries';
 import { MainStackParamList } from '@/types';
-import { calculateAge, getGenderLabel } from '@/utils/profile';
+import { calculateAge, getGenderLabel } from '@/utils';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 

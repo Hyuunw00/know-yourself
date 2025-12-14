@@ -4,14 +4,13 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RootNavigator } from '@/navigation/RootNavigator';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuthStore, useNotificationStore } from '@/stores';
 import {
   initializeFCM,
   setupForegroundMessageHandler,
   setupNotificationOpenedListener,
-} from '@/services/pushNotification.service';
-import { updateLastAppOpenAt } from '@/services/profile.service';
-import { useNotificationStore } from '@/stores/notificationStore';
+  updateLastAppOpenAt,
+} from '@/services';
 
 const queryClient = new QueryClient();
 

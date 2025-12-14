@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuthStore } from '@/stores';
 import { AuthStack } from './AuthStack';
 import { MainStack } from './MainStack';
 
