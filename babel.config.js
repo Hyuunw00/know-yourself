@@ -10,6 +10,7 @@ module.exports = {
         },
       },
     ],
+    'react-native-reanimated/plugin', // Reanimated 플러그인 추가
   ],
   env: {
     production: {

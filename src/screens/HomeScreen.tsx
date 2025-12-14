@@ -25,7 +25,7 @@ import { getProfile, updateLastAppOpenAt } from '@/services/profile.service';
 import { DailyLog, UserProfile } from '@/types/database';
 import { MainStackParamList } from '@/types';
 import { formatDateShort } from '@/utils/date';
-import { getUnreadCount } from '@/services/notification.service';
+import { useUnreadCount } from '@/queries/useNotifications';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
@@ -34,7 +34,6 @@ export const HomeScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedLog, setSelectedLog] = useState<DailyLog | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [unreadCount, setUnreadCount] = useState(0);
 
   const { user, logout } = useAuthStore();
 
@@ -59,19 +58,14 @@ export const HomeScreen = () => {
   const updateLogMutation = useUpdateDailyLog();
   const deleteLogMutation = useDeleteDailyLog();
 
-  const loadUnreadCount = async () => {
-    if (!user?.id) return;
-    const count = await getUnreadCount(user.id);
-    setUnreadCount(count);
-  };
+  // React Query - Unread notification count
+  const { data: unreadCount = 0 } = useUnreadCount(user?.id);
 
   useEffect(() => {
     if (user?.id) {
       getProfile(user.id).then(setProfile);
       updateLastAppOpenAt(user.id);
-      loadUnreadCount();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   const handleSaveLog = async (text: string) => {
@@ -219,7 +213,6 @@ export const HomeScreen = () => {
         </View>
       </ScrollView>
 
-      {/* 기록 작성/수정 모달 */}
       <DailyLogModal
         visible={modalVisible}
         onClose={handleCloseModal}
@@ -228,8 +221,6 @@ export const HomeScreen = () => {
         onDelete={selectedLog ? handleDeleteLog : undefined}
         log={selectedLog}
       />
-
-      {/* AI 질문 모달은 RootNavigator로 이동 (전역 처리) */}
     </SafeAreaView>
   );
 };

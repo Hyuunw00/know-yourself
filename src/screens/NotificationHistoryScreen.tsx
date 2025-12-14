@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,94 +8,97 @@ import {
   ActivityIndicator,
   Alert,
   RefreshControl,
-  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Swipeable } from 'react-native-gesture-handler';
+import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+import Reanimated, {
+  SharedValue,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 import { useAuthStore } from '@/stores/authStore';
 import { useNotificationStore } from '@/stores/notificationStore';
-import { Notification, MainStackParamList } from '@/types';
 import {
-  getNotifications,
-  markAsRead,
-  markAllAsRead,
-  deleteNotification,
-} from '@/services/notification.service';
+  useNotificationsInfinite,
+  useMarkAsRead,
+  useMarkAllAsRead,
+  useDeleteNotification,
+} from '@/queries/useNotifications';
+import { Notification, MainStackParamList } from '@/types';
 import { formatDateMedium } from '@/utils/date';
+import { getNotificationIcon } from '@/utils/notification';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
-const PAGE_SIZE = 20;
+// 오른쪽 스와이프 삭제 애니메이션
+const RightAction = ({
+  drag,
+  onDelete,
+}: {
+  drag: SharedValue<number>;
+  onDelete: () => void;
+}) => {
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: drag.value + 80 }],
+  }));
+
+  return (
+    <Reanimated.View style={[styles.deleteAction, animatedStyle]}>
+      <TouchableOpacity style={styles.deleteButton} onPress={onDelete}>
+        <Text style={styles.deleteText}>삭제</Text>
+      </TouchableOpacity>
+    </Reanimated.View>
+  );
+};
 
 export const NotificationHistoryScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const { setPendingNotification } = useNotificationStore();
   const { user } = useAuthStore();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
-  // 초기 로드
-  useEffect(() => {
-    loadNotifications();
-  }, []);
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    refetch,
+    isRefetching,
+  } = useNotificationsInfinite(user?.id);
 
-  const loadNotifications = async (offset: number = 0) => {
-    if (!user?.id) return;
+  const markAsReadMutation = useMarkAsRead();
+  const markAllAsReadMutation = useMarkAllAsRead();
+  const deleteMutation = useDeleteNotification();
 
-    if (offset === 0) {
-      setIsLoading(true);
-    } else {
-      setIsLoadingMore(true);
-    }
-
-    const data = await getNotifications(user.id, PAGE_SIZE, offset);
-
-    if (offset === 0) {
-      setNotifications(data);
-    } else {
-      setNotifications(prev => [...prev, ...data]);
-    }
-
-    setHasMore(data.length === PAGE_SIZE);
-    setIsLoading(false);
-    setIsLoadingMore(false);
-    setRefreshing(false);
-  };
+  // 알림 목록
+  const notifications = useMemo(
+    () => data?.pages.flatMap(page => page) ?? [],
+    [data],
+  );
 
   const handleLoadMore = () => {
-    if (!isLoadingMore && hasMore && !isLoading) {
-      loadNotifications(notifications.length);
+    if (!isFetchingNextPage && hasNextPage) {
+      fetchNextPage();
     }
   };
 
   const handleRefresh = () => {
-    setRefreshing(true);
-    loadNotifications(0);
+    refetch();
   };
 
-  const handleNotificationClick = async (notification: Notification) => {
+  const handleNotificationClick = (notification: Notification) => {
     // 읽음 처리
     if (!notification.read) {
-      const success = await markAsRead(notification.id);
-      if (success) {
-        setNotifications(prev =>
-          prev.map(n => (n.id === notification.id ? { ...n, read: true } : n)),
-        );
-      }
+      markAsReadMutation.mutate(notification.id);
     }
 
-    // 알림 타입별 분기 처리
     switch (notification.type) {
       case 'ai_question':
-        // AI 질문 알림 → MainStack에서 처리하도록 pendingNotification 설정
         const questionId = (notification.data?.questionId ||
           notification.data?.question_id) as string;
 
+        // AI 질문 모달로 이동
         setPendingNotification({
           type: notification.type,
           questionId: questionId,
@@ -105,7 +108,6 @@ export const NotificationHistoryScreen = () => {
         break;
 
       case 'analysis_complete':
-        // AI 분석 완료 알림 → 프로필 페이지로 이동
         navigation.navigate('Profile');
         break;
 
@@ -114,73 +116,25 @@ export const NotificationHistoryScreen = () => {
     }
   };
 
-  const handleMarkAllAsRead = async () => {
+  const handleMarkAllAsRead = () => {
     if (!user?.id) return;
 
-    const success = await markAllAsRead(user.id);
-    if (success) {
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-      Alert.alert('완료', '모든 알림을 읽음으로 표시했습니다');
-    }
-  };
-
-  const handleDelete = async (notificationId: string) => {
-    const success = await deleteNotification(notificationId);
-    if (success) {
-      setNotifications(prev => prev.filter(n => n.id !== notificationId));
-    }
-  };
-
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'ai_question':
-        return '💭';
-      case 'analysis_complete':
-        return '✨';
-      case 'reminder':
-        return '⏰';
-      case 'system':
-        return '🔔';
-      default:
-        return '📬';
-    }
-  };
-
-  const renderRightActions = (
-    _progress: Animated.AnimatedInterpolation<number>,
-    dragX: Animated.AnimatedInterpolation<number>,
-    item: Notification,
-  ) => {
-    const trans = dragX.interpolate({
-      inputRange: [-80, 0],
-      outputRange: [0, 80],
-      extrapolate: 'clamp',
+    markAllAsReadMutation.mutate(user.id, {
+      onSuccess: () => {
+        Alert.alert('완료', '모든 알림을 읽음으로 표시했습니다');
+      },
     });
+  };
 
-    return (
-      <Animated.View
-        style={[
-          styles.deleteAction,
-          {
-            transform: [{ translateX: trans }],
-          },
-        ]}
-      >
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => handleDelete(item.id)}
-        >
-          <Text style={styles.deleteText}>삭제</Text>
-        </TouchableOpacity>
-      </Animated.View>
-    );
+  const handleDelete = (notificationId: string) => {
+    deleteMutation.mutate(notificationId);
   };
 
   const renderNotification = ({ item }: { item: Notification }) => (
-    <Swipeable
-      renderRightActions={(progress, dragX) =>
-        renderRightActions(progress, dragX, item)
-      }
+    <ReanimatedSwipeable
+      renderRightActions={(_progress, drag) => (
+        <RightAction drag={drag} onDelete={() => handleDelete(item.id)} />
+      )}
       overshootRight={false}
       friction={2}
       rightThreshold={40}
@@ -203,11 +157,11 @@ export const NotificationHistoryScreen = () => {
           <Text style={styles.time}>{formatDateMedium(item.created_at)}</Text>
         </View>
       </TouchableOpacity>
-    </Swipeable>
+    </ReanimatedSwipeable>
   );
 
   const renderFooter = () => {
-    if (!isLoadingMore) return null;
+    if (!isFetchingNextPage) return null;
     return (
       <View style={styles.footerLoader}>
         <ActivityIndicator color="#4CAF50" />
@@ -255,7 +209,7 @@ export const NotificationHistoryScreen = () => {
           ListEmptyComponent={renderEmpty}
           refreshControl={
             <RefreshControl
-              refreshing={refreshing}
+              refreshing={isRefetching && !isFetchingNextPage}
               onRefresh={handleRefresh}
               tintColor="#4CAF50"
             />
