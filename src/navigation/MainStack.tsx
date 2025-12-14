@@ -5,7 +5,7 @@ import { MainStackParamList } from '@/types';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { OnboardingScreen } from '@/screens/OnboardingScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
-import { ProfileEditScreen } from '@/screens/ProfileEditScreen';
+import { ProfileEditScreen } from '@/screens/ProfileEdit';
 import { LogHistoryScreen } from '@/screens/LogHistoryScreen';
 import { NotificationHistoryScreen } from '@/screens/NotificationHistoryScreen';
 import { useAuthStore } from '@/stores/authStore';
