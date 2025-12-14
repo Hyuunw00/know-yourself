@@ -21,8 +21,8 @@ import {
 import { useAuthStore } from '@/stores/authStore';
 import { useLatestAnalysis, useRunAnalysis } from '@/queries/useAnalysis';
 import { shouldTriggerAnalysis } from '@/utils/analysis';
-import { getProfile, updateLastAppOpenAt } from '@/services/profile.service';
-import { DailyLog, UserProfile } from '@/types/database';
+import { useProfile, useUpdateLastAppOpenAt } from '@/queries/useProfile';
+import { DailyLog } from '@/types/database';
 import { MainStackParamList } from '@/types';
 import { formatDateShort } from '@/utils/date';
 import { useUnreadCount } from '@/queries/useNotifications';
@@ -33,7 +33,6 @@ export const HomeScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedLog, setSelectedLog] = useState<DailyLog | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
 
   const { user, logout } = useAuthStore();
 
@@ -61,11 +60,15 @@ export const HomeScreen = () => {
   // React Query - Unread notification count
   const { data: unreadCount = 0 } = useUnreadCount(user?.id);
 
+  // React Query - Profile
+  const { data: profile } = useProfile(user?.id);
+  const updateLastAppOpenAtMutation = useUpdateLastAppOpenAt();
+
   useEffect(() => {
     if (user?.id) {
-      getProfile(user.id).then(setProfile);
-      updateLastAppOpenAt(user.id);
+      updateLastAppOpenAtMutation.mutate(user.id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   const handleSaveLog = async (text: string) => {

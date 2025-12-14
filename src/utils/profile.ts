@@ -20,3 +20,28 @@ export const isProfileComplete = (profile: UserProfile): boolean => {
     profile.bio?.trim()
   );
 };
+
+export const getGenderLabel = (gender?: string) => {
+  switch (gender) {
+    case 'male':
+      return '남성';
+    case 'female':
+      return '여성';
+    case 'other':
+      return '기타';
+    default:
+      return '미입력';
+  }
+};
+
+export const calculateAge = (birthdate?: string) => {
+  if (!birthdate) return null;
+  const birth = new Date(birthdate);
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+};

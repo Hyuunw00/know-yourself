@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import DatePicker from 'react-native-date-picker';
 import { useAuthStore } from '@/stores/authStore';
 import { useLatestAnalysis, useRunAnalysis } from '@/queries/useAnalysis';
 import { useDailyLogs } from '@/queries/useDailyLogs';
-import { getProfile, updateProfile } from '@/services/profile.service';
+import { useProfile, useUpdateProfile } from '@/queries/useProfile';
 import { MBTI_TYPES, GENDERS } from '@/constants/onboarding';
 import { isProfileComplete } from '@/utils/profile';
 import {
@@ -35,32 +35,26 @@ export const ProfileEditScreen = () => {
   const runAnalysisMutation = useRunAnalysis();
   const { data: logsData } = useDailyLogs(user?.id);
   const totalCount = logsData?.count ?? 0;
+
+  // React Query - Profile
+  const { data: profileData, isLoading } = useProfile(user?.id);
+  const updateProfileMutation = useUpdateProfile();
+
   const [profile, setProfile] = useState<Partial<UserProfile>>({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<ProfileTabKey>('basic');
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const fetchProfile = useCallback(async () => {
-    if (!user?.id) return;
-
-    const data = await getProfile(user.id);
-    if (data) {
-      setProfile(data);
-    }
-    setIsLoading(false);
-  }, [user?.id]);
-
+  // 프로필 데이터 로드 시 로컬 상태에 복사
   useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+    if (profileData) {
+      setProfile(profileData);
+    }
+  }, [profileData]);
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!user?.id) return;
 
-    setIsSaving(true);
-
-    const { success } = await updateProfile(user.id, {
+    const profileToSave = {
       name: profile.name,
       birthdate: profile.birthdate || undefined,
       gender: profile.gender || undefined,
@@ -76,61 +70,60 @@ export const ProfileEditScreen = () => {
       values: profile.values || undefined,
       goals: profile.goals || undefined,
       bio: profile.bio || undefined,
-    });
+    };
 
-    setIsSaving(false);
+    updateProfileMutation.mutate(
+      { userId: user.id, profile: profileToSave },
+      {
+        onSuccess: result => {
+          if (!result.success) {
+            Alert.alert('오류', '저장에 실패했습니다.');
+            return;
+          }
 
-    if (!success) {
-      Alert.alert('오류', '저장에 실패했습니다.');
-      return;
-    }
+          // 프로필이 처음으로 완성되었고, 아직 분석이 없으면 첫 분석 실행
+          const updatedProfile = {
+            ...profile,
+            ...profileToSave,
+          } as UserProfile;
 
-    // 프로필이 처음으로 완성되었고, 아직 분석이 없으면 첫 분석 실행
-    const updatedProfile = {
-      ...profile,
-      name: profile.name,
-      birthdate: profile.birthdate,
-      gender: profile.gender,
-      mbti: profile.mbti,
-      occupation: profile.occupation,
-      personality_keywords: profile.personality_keywords,
-      strengths: profile.strengths,
-      weaknesses: profile.weaknesses,
-      interests: profile.interests,
-      values: profile.values,
-      goals: profile.goals,
-    } as UserProfile;
+          const isNowComplete = isProfileComplete(updatedProfile);
 
-    const isNowComplete = isProfileComplete(updatedProfile);
-
-    // 프로필이 완성되었고 아직 분석이 없으면 첫 분석 제안
-    if (isNowComplete && !latestAnalysis) {
-      Alert.alert(
-        '프로필 완성!',
-        'AI가 당신을 분석해드릴게요. 분석을 시작할까요?',
-        [
-          { text: '나중에', onPress: () => navigation.goBack() },
-          {
-            text: '분석 시작',
-            onPress: () => {
-              navigation.goBack();
-              // 백그라운드로 분석 실행
-              runAnalysisMutation.mutate({
-                userId: user.id,
-                profile: updatedProfile,
-                logCount: totalCount,
-                latestAnalysis: latestAnalysis || null,
-              });
-            },
-          },
-        ],
-      );
-    } else {
-      Alert.alert('완료', '프로필이 저장되었습니다.', [
-        { text: '확인', onPress: () => navigation.goBack() },
-      ]);
-    }
+          // 프로필이 완성되었고 아직 분석이 없으면 첫 분석 제안
+          if (isNowComplete && !latestAnalysis) {
+            Alert.alert(
+              '프로필 완성!',
+              'AI가 당신을 분석해드릴게요. 분석을 시작할까요?',
+              [
+                { text: '나중에', onPress: () => navigation.goBack() },
+                {
+                  text: '분석 시작',
+                  onPress: () => {
+                    navigation.goBack();
+                    runAnalysisMutation.mutate({
+                      userId: user.id,
+                      profile: updatedProfile,
+                      logCount: totalCount,
+                      latestAnalysis: latestAnalysis || null,
+                    });
+                  },
+                },
+              ],
+            );
+          } else {
+            Alert.alert('완료', '프로필이 저장되었습니다.', [
+              { text: '확인', onPress: () => navigation.goBack() },
+            ]);
+          }
+        },
+        onError: () => {
+          Alert.alert('오류', '저장에 실패했습니다.');
+        },
+      },
+    );
   };
+
+  const isSaving = updateProfileMutation.isPending;
 
   // 배열 필드 토글 (복수 선택)
   const toggleArrayField = (field: keyof UserProfile, value: string) => {
@@ -382,7 +375,7 @@ export const ProfileEditScreen = () => {
     </>
   );
 
-  // ���이프스타일 탭
+  // 라이프스타일 탭
   const renderLifestyleTab = () => (
     <>
       <View style={styles.section}>

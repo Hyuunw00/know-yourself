@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -14,8 +14,9 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuthStore } from '@/stores/authStore';
 import { useLatestAnalysis, useRunAnalysis } from '@/queries/useAnalysis';
-import { getProfile, deleteAccount } from '@/services/profile.service';
-import { UserProfile, MainStackParamList } from '@/types';
+import { useProfile, useDeleteAccount } from '@/queries/useProfile';
+import { MainStackParamList } from '@/types';
+import { calculateAge, getGenderLabel } from '@/utils/profile';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
@@ -28,26 +29,9 @@ export const ProfileScreen = () => {
   const runAnalysisMutation = useRunAnalysis();
   const isAnalyzing = runAnalysisMutation.isPending;
 
-  const [profile, setProfile] = useState<Partial<UserProfile> | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const fetchProfile = useCallback(async () => {
-    if (!user?.id) return;
-
-    const data = await getProfile(user.id);
-    if (data) {
-      setProfile(data);
-    }
-    setIsLoading(false);
-  }, [user?.id]);
-
-  useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
-
-  const handleOpenNotificationSettings = () => {
-    Linking.openSettings();
-  };
+  // React Query - Profile
+  const { data: profile, isLoading } = useProfile(user?.id);
+  const deleteAccountMutation = useDeleteAccount();
 
   const handleDeleteAccount = () => {
     Alert.alert(
@@ -58,54 +42,30 @@ export const ProfileScreen = () => {
         {
           text: '삭제',
           style: 'destructive',
-          onPress: async () => {
+          onPress: () => {
             if (!user?.id) return;
 
-            const result = await deleteAccount(user.id);
-            if (result.success) {
-              Alert.alert('완료', '계정이 삭제되었습니다', [
-                {
-                  text: '확인',
-                  onPress: () => {
-                    setUser(null);
-                  },
-                },
-              ]);
-            } else {
-              Alert.alert('오류', '계정 삭제에 실패했습니다');
-            }
+            deleteAccountMutation.mutate(user.id, {
+              onSuccess: result => {
+                if (result.success) {
+                  Alert.alert('완료', '계정이 삭제되었습니다', [
+                    {
+                      text: '확인',
+                      onPress: () => setUser(null),
+                    },
+                  ]);
+                } else {
+                  Alert.alert('오류', '계정 삭제에 실패했습니다');
+                }
+              },
+              onError: () => {
+                Alert.alert('오류', '계정 삭제에 실패했습니다');
+              },
+            });
           },
         },
       ],
     );
-  };
-
-  const getGenderLabel = (gender?: string) => {
-    switch (gender) {
-      case 'male':
-        return '남성';
-      case 'female':
-        return '여성';
-      case 'other':
-        return '기타';
-      default:
-        return '미입력';
-    }
-  };
-
-  const calculateAge = (birthdate?: string) => {
-    if (!birthdate) return null;
-    const birth = new Date(birthdate);
-    const today = new Date();
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birth.getDate())
-    ) {
-      age--;
-    }
-    return age;
   };
 
   if (isLoading) {
@@ -300,7 +260,7 @@ export const ProfileScreen = () => {
             {/* 알림 설정 */}
             <TouchableOpacity
               style={styles.settingItem}
-              onPress={handleOpenNotificationSettings}
+              onPress={() => Linking.openSettings()}
             >
               <View style={styles.settingInfo}>
                 <Text style={styles.settingLabel}>푸시 알림</Text>
