@@ -55,7 +55,7 @@ export const Button = ({
       ) : (
         <Text
           style={[
-            styles.text,
+            styles.baseText,
             styles[`${variant}Text`],
             styles[`${size}Text`],
             isDisabled && styles.disabledText,
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   },
 
   // Text styles
-  text: {
+  baseText: {
     fontWeight: '600',
   },
   primaryText: {
