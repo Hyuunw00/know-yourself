@@ -62,8 +62,8 @@ export const MainStack = () => {
           if (questionId) {
             const question = await getQuestionById(questionId);
 
-            // 이미 스킵되었거나 답변된 질문은 모달 표시 안함
-            if (question && !question.answer_text && !question.skipped) {
+            // 알림 클릭 시에는 skipped 여부와 관계없이 답변 안 한 질문이면 모달 표시
+            if (question && !question.answer_text) {
               setAiQuestion(question);
               setShowQuestionModal(true);
             }

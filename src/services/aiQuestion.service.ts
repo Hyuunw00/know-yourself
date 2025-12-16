@@ -10,7 +10,7 @@ export const getTodayQuestion = async (
     .select('*')
     .eq('user_id', userId)
     .is('answer_text', null)
-    .or('skipped.is.null,skipped.eq.false')
+    .neq('skipped', true)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
